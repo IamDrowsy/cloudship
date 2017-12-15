@@ -24,7 +24,7 @@
         (recur rest-flags (-> new-props
                               (update :flags #(pop-if-current current-flag %))
                               (update :resolved-flags (fnil conj []) current-flag))))
-      props)))
+      (dissoc props :flags))))
 
 (defmethod resolve-flag
   "v"

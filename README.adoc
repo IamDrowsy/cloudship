@@ -1,10 +1,166 @@
 = cloudship
 
+:sourcedir: src
+:exampledir: examples
+
 Cloudship is a Clojure toolkit to explore and manipulate your salesforce instances.
+It's desigend to work from the repl against many different orgs and supporst
+
+* Auth Data from different Sources
+** Username + Password or Session in Configuration
+** Username + Password in Keepass
+** oauth (not yet)
+** sfdx (not yet)
+* Extensions to Configuration
+** connect via CipherCloud
+** your own extension
+* Convenient methods taking and returning Clojure Datastructures
+** SOAP-Api
+** Bulk-Api
+** Meta-Api
 
 == Usage
 
-FIXME
+
+
+== Connection Creation
+Every function that talks to a Salesforce Org takes the connection
+as first argument. This can be either:
+
+* an `Org` Record
+* a Map of connection properties
+* a keyword
+
+When working with many orgs from the repl we recommend to configure the usage
+of keywords. The resulting connections will be cached and manged for you.
+
+If you don't care about the internals, you can jump to the <<Resolve Examples>>
+
+=== From Keyword
+A keyword that describes a connection has the following syntax:
+```
+:org-name[:sandbox-name][.flag|.flag:opt]*
+```
+where the org-name can be choosen freely,
+sandbox-name is the name of the sandbox you want to connect to
+and flag / flag:opt are modifiers that can change what your
+connection properties look like before the connection is created
+(see <<Resolving Flags>>).
+
+Given a keyword as connection ,cloudship will do the following:
+
+. check if there is a cached `Org` Record for this keyword
+. if not, build a property map from the keyword by
+.. parsing the keyword into a initial prop map (with `:org-name` `:sandbox` `:flags` and `:full` (original kw) as keys)
+.. deep-merges all found `cloudship.edn` in `resource-folder`, `%user-home/.cloudship`,
+   `current folder` (in this order) to a big config map.
+.. deep-merges to a final prop map
+... all entries (except `:orgs`) of config map (b.)
+... the initial prop map (a.)
+... all entries in `[:orgs :org-name]` of config map
+... all entries in `[:orgs :org-name :sandboxes "sandbox-name"]` of config-map
+.. continue with the <<From Property Map>>
+
+This process is a bit complex to provide a trade-off between ease and flexibility
+ of configuration and usage.
+
+For the most part you don't need to care about these details.
+Just follow the <<Tutorial>> and you will get the idea.
+
+=== From Property Map
+
+Given a property map, cloudship will try to create an `Org` Record by
+
+. add or coerce api-version (currently default is `41.0`)
+. build base-url from `:sandbox`, `:instance` and `:my-domain`
+** providing nothing will result in `login.salesforce.com`
+** only sandbox will result in `test.salesforce.com`
+** only my-domain will result in `<my-domain>.my.salesforce.com`
+** my-domain, sandbox needs the instance (e.g. "86") as this cannot be resolved
+   and will result in `<my-domain>--<sandbox>.cs<instance>.my.salesforce.com`
+. <<Resolving Flags>>
+. add `https://` to url if missing
+. add `.<sandbox>` to username if target is sandbox and it's missing
+
+After this, the property map should conform to the following spec:
+[source,clojure]
+----
+include::{sourcedir}/cloudship/connection/props/spec.clj[lines=24..29]
+----
+
+==== Resolving Flags
+
+Flags are instructions to modify the connection properties before trying to
+create the `Org` Record.
+
+A Flag can either be a simple String or a Map with `{:flag-name string? ...}`.
+The Multimethod `cloudship.connection.props.flags/resolve-flag` is called
+on the flag and needs to return a function `Property Map -> Property Map`.
+
+All Flags are resolved and applied in order until there are no more left.
+
+The following flags are included:
+
+* `v` - Version flag that sets the version to it's opt e.g. `v:39`.
+* `kp` - Keepass, reads username and password from a keepass file.
+** needs `:kpdb` and `:kppath` (vector of path in keepath db).
+** `:kppass` can be set, otherwise will be prompted.
+* `cc` - CipherCloud, changes the url to a CipherCloud url.
+** needs `:cc-domain` and `:cc-alias`.
+** you probably won't need this.
+
+=== Resolve Examples
+
+Given the `cloudship.edn`
+[source,clojure]
+----
+include::{exampledir}/cloudship-example.edn[]
+----
+the keywords will result in the following property maps
+[source,clojure]
+----
+(->props :org1) =>
+    {:api-version "40.0",
+     :full :org1,
+     :org "org1",
+     :password "very-secret1!",
+     :url "https://login.salesforce.com",
+     :username "my@username.de"}
+
+(->props :org1:new) =>
+; api-version is overwritten in config
+; username and url are adjusted for the sandbox
+    {:api-version "41.0",
+     :base-username "my@username.de",
+     :full :org1:new,
+     :org "org1",
+     :password "very-secret1!",
+     :sandbox "new",
+     :url "https://test.salesforce.com",
+     :username "my@username.de.new"}
+
+(->props :org1:other) =>
+; nothing is overwritten, but username/url are adjustet for the sandbox
+    {:api-version "40.0",
+     :base-username "my@username.de",
+     :full :org1:other,
+     :org "org1",
+     :password "very-secret1!",
+     :sandbox "other",
+     :url "https://test.salesforce.com",
+     :username "my@username.de.other"}
+
+(->props :org1.v:39) =>
+; version is adjusted by the flag
+    {:api-version "39.0",
+     :full :org1.v:39,
+     :org "org1",
+     :password "very-secret1!",
+     :resolved-flags [{:flag-name "v", :opt "39"}],
+     :url "https://login.salesforce.com",
+     :username "my@username.de"}
+----
+
 
 == License
 

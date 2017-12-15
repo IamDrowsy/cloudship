@@ -60,10 +60,11 @@
 (defn ->props [kw-or-map]
   (let [props (cond (keyword? kw-or-map) #_=> (kw/kw->props kw-or-map)
                     (map? kw-or-map)     #_=> kw-or-map)]
-    (-> props
-        +api-version
-        +url
-        +flags
-        +protocol
-        +sandbox-username-extension)))
+    (u/assert-input ::prop-spec/final-props
+                    (-> props
+                        +api-version
+                        +url
+                        +flags
+                        +protocol
+                        +sandbox-username-extension))))
 

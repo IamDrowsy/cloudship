@@ -3,11 +3,13 @@
   (:require [instaparse.core :as insta]
             [clojure.spec.alpha :as s]
             [cloudship.connection.props.load :as l]
-            [cloudship.connection.props.spec :as prop-spec]))
+            [cloudship.connection.props.spec :as prop-spec]
+            [cloudship.util.spec :as u]
+            [instaparse.failure :as fail]))
 
 (def kw-grammar
   "kw = org sandbox-part? flags
-   <ident> = #'[A-Za-z0-9_]+'
+   <ident> = #'[A-Za-z0-9_-]+'
    org = ident
    <sandbox-part> = <':'> sandbox
    sandbox = ident
@@ -33,6 +35,16 @@
 
 (s/def ::prop-kw (s/and keyword? parses?))
 
+(defn- failure->string [result]
+  (with-out-str (fail/pprint-failure result)))
+
+(defn try-parsing [kw]
+  (let [result (insta/parse parser (name kw))]
+    (if (insta/failure? result)
+      (throw (ex-info (failure->string result)
+                      {:input (name kw)}))
+      result)))
+
 (defn parse-keyword
   "Takes a keyword and parses it into a map"
   [kw]
@@ -44,7 +56,7 @@
               [:flags (vec flags)])
      :kw (fn [& parts]
            (into {} parts))}
-    (merge (insta/parse parser (name kw))
+    (merge (try-parsing (name kw))
            {:full kw})))
 
 (s/fdef parse-keyword
