@@ -23,6 +23,6 @@
          (str "." cc-url))))
 
 (defn resolve-cc-flag []
-  (fn [{:keys [cc-url cc-alias sandbox url] :as con-props}]
+  (fn [{:keys [cc-url cc-alias sandbox] :as con-props}]
     (u/assert-input ::prop-before-cc con-props)
-    (update con-props :url (partial cc-url cc-alias sandbox url))))
+    (update con-props :url (partial change-to-cc-url cc-url cc-alias sandbox))))

@@ -9,7 +9,7 @@
   "kw = org sandbox-part? flags
    <ident> = #'[A-Za-z0-9_]+'
    org = ident
-   <sandbox-part> = <'-'> sandbox
+   <sandbox-part> = <':'> sandbox
    sandbox = ident
    flags = flag*
    flag = <'.'> ident flag-opt?
@@ -23,8 +23,7 @@
 
 
 (s/def ::flag-name string?)
-(s/def ::flag-opt string?)
-(s/def ::flag-map (s/keys :req-un [::flag-name] :opt-un [::flag-opt]))
+(s/def ::flag-map (s/keys :req-un [::flag-name]))
 (s/def ::flag (s/or :map ::flag-name
                     :string ::flag-map))
 (s/def ::flags (s/* ::flag))
@@ -56,8 +55,8 @@
   (let [all-props (l/slurp-and-merge-props)
         base-props (dissoc all-props :orgs)
         org-props (dissoc (get-in all-props [:orgs (keyword org)] {}) :sandboxes)
-        sandbox-props (get-in all-props [:orgs (keyword org) :sandboxes (keyword sandbox)] {})]
-    (l/deep-merge base-props org-props sandbox-props kw-props)))
+        sandbox-props (get-in all-props [:orgs (keyword org) :sandboxes sandbox] {})]
+    (l/deep-merge base-props kw-props org-props sandbox-props)))
 
 (defn kw->props
   "Takes a keyword, parses it into a map and merges the configured props into it"

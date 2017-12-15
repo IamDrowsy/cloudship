@@ -6,5 +6,6 @@
   (if (not (s/valid? spec input))
     (throw (ex-info (expound-str spec input)
                     {:spec spec
-                     :input input}))))
+                     :input input}))
+    input))
 
