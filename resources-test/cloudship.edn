@@ -1,0 +1,8 @@
+{:test-prop "X"
+ :username "test2"
+ :flags ["a"]
+ :orgs
+ {:test {:username "test"
+         :password "test"
+         :flags ["b"]
+         :sandboxes {:dev {:username "dev"}}}}}
