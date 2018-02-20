@@ -36,6 +36,10 @@
         "login.salesforce.com"))
 
 (defn- +url [{:keys [sandbox my-domain url instance] :as props}]
+  ; we don't want to assert here, because the sfdx flags doesn't need this. (and will provide url later)
+  ; also, because we check the final result later.
+  ; TODO We might want to make an url flag or some other mechanism to get this assertion back.
+  #_
   (u/assert-input ::props-before-url props)
   (if url
     props
@@ -46,7 +50,7 @@
 
 (defn- +protocol [{:keys [url] :as props}]
   (if (str/starts-with? url "https://")
-    url
+    props
     (assoc props :url (str "https://" url))))
 
 (defn- +sandbox-username-extension [{:keys [username sandbox] :as props}]

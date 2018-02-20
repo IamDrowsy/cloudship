@@ -1,7 +1,8 @@
 (ns cloudship.connection.props.flags
   (:require [cloudship.connection.props.flags.ciphercloud :as cc]
             [cloudship.connection.props.flags.version :as v]
-            [cloudship.connection.props.flags.keepass :as kp]))
+            [cloudship.connection.props.flags.keepass :as kp]
+            [cloudship.connection.props.flags.sfdx :as sfdx]))
 
 (defmulti resolve-flag (fn [flag]
                          (if (map? flag)
@@ -37,3 +38,7 @@
 (defmethod resolve-flag
   "kp"
   [this] (kp/resolve-kp-flag))
+
+(defmethod resolve-flag
+  "sfdx"
+  [this] (sfdx/resolve-sfdx-flag))

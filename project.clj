@@ -7,7 +7,9 @@
                  [instaparse "1.4.8"]
                  [com.taoensso/timbre "4.10.0"]
                  [expound "0.3.4"]
-                 [de.slackspace/openkeepass "0.6.1"]]
+                 [de.slackspace/openkeepass "0.6.1"]
+                 [org.clojure/data.json "0.2.6"]]
 
   :profiles {:dev {:resource-paths ["resources-test"]
-                   :dependencies [[org.clojure/test.check "0.10.0-alpha2"]]}})
+                   :dependencies [[org.clojure/test.check "0.10.0-alpha2"]
+                                  [orchestra "2017.11.12-1"]]}})
