@@ -2,7 +2,7 @@
   (:require [taoensso.timbre :as t]
             [cloudship.client.sf-sdk.data.types :as types])
   (:import (com.sforce.ws.bind XmlObject XmlObjectWrapper)
-           (com.sforce.soap.partner.sobject ISObject)
+           (com.sforce.soap.partner.sobject ISObject SObject)
            (javax.xml.namespace QName)))
 
 (defn- extract-inner-query [result]
@@ -30,3 +30,30 @@
                                  (types/sf->clj data-describe-client obj-name fieldname (.getValue field)))))))
             {}
             fields)))
+
+(defn- add-field-to-null [^ISObject obj field-name]
+  (let [f (.getFieldsToNull obj)]
+    (if (nil? f)
+      (.setFieldsToNull obj (into-array String [field-name]))
+      (.setFieldsToNull obj (into-array String (conj (into [] f) field-name))))))
+
+(declare map->sobj)
+
+(defn- set-field [con-or-kw ^XmlObject obj name val]
+  (if (= :delete val)
+    (add-field-to-null obj name)
+    (cond
+      (map? val) (.setField obj name (map->sobj con-or-kw val))
+      (= name "type") (.setField obj name val)
+      :else    (.setField obj name (types/clj->sf con-or-kw (.getType ^ISObject obj) name val)))))
+
+(defn- type-first-sort-fn
+  "Type call needs to come first"
+  [entry]
+  (cond (= (key entry) :type) 0
+        :true 1))
+
+(defn map->sobj [con-or-kw m]
+  (let [obj (SObject.)]
+    (dorun (map #(set-field con-or-kw obj (name (key %)) (val %)) (sort-by type-first-sort-fn m)))
+    obj))

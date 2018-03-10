@@ -6,13 +6,8 @@
 (defn- describe-objects* [client object-names]
   (jd/from-java (.describeSObjects client (into-array String object-names))))
 
-(defn- describe-objects [client object-names]
+(defn describe-objects [client object-names]
   (mapcat #(describe-objects* client %) (partition-all 100 object-names)))
 
-(defn- describe-global [client]
+(defn describe-global [client]
   (:sobjects (jd/from-java (.describeGlobal client))))
-
-(extend-protocol DataDescribeClient
-  PartnerConnection
-  (describe-global [this] (describe-global this))
-  (describe-sobjects [this object-names] (describe-objects this object-names)))

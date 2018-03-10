@@ -1,6 +1,9 @@
 (ns cloudship.client.sf-sdk.data.init
   (:require [clojure.spec.alpha :as s]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [cloudship.client.protocols :refer [DataDescribeClient DataClient]]
+            [cloudship.client.sf-sdk.data.describe :as describe]
+            [cloudship.client.sf-sdk.data.core :as impl])
   (:import (com.sforce.ws ConnectorConfig)
            (com.sforce.soap.partner PartnerConnection)))
 
@@ -41,3 +44,22 @@
 
 (defn ->partner-connection [props]
   (PartnerConnection. (prepare-config props)))
+
+(extend-protocol DataDescribeClient
+  PartnerConnection
+  (describe-global [this] (describe/describe-global this))
+  (describe-objects [this object-names] (describe/describe-objects this object-names)))
+
+(extend-protocol DataClient
+  PartnerConnection
+  (query [this describe-client query-string options]
+    (impl/query this describe-client query-string options))
+  (insert [this describe-client records options]
+    (impl/insert this describe-client records options))
+  (update [this describe-client records options]
+    (impl/update this describe-client records options))
+  (upsert [this describe-client records options]
+    (impl/upsert this describe-client records options))
+  (delete [this describe-client records options]
+    (impl/delete this describe-client records options)))
+

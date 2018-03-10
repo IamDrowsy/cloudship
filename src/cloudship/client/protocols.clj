@@ -12,4 +12,4 @@
 
 (defprotocol DataDescribeClient
   (describe-global [this])
-  (describe-sobjects [this object-names]))
+  (describe-objects [this object-names]))

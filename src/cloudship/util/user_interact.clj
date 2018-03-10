@@ -25,3 +25,8 @@
     (if (= (show-and-resolve-password-option-pane "Input Password" p)
            JOptionPane/OK_OPTION)
       (apply str (.getPassword pw)))))
+
+(defn ask-to-continue! [infotext]
+  (if (= 0 (JOptionPane/showConfirmDialog nil infotext "Continue?" JOptionPane/OK_CANCEL_OPTION))
+    true
+    false))
