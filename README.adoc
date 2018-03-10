@@ -4,13 +4,13 @@
 :exampledir: examples
 
 Cloudship is a Clojure toolkit to explore and manipulate your salesforce instances.
-It's desigend to work from the repl against many different orgs and supporst
+It's designed to work from the repl against many different orgs and supports
 
 * Auth Data from different Sources
 ** Username + Password or Session in Configuration
 ** Username + Password in Keepass
+** sfdx
 ** oauth (not yet)
-** sfdx (not yet)
 * Extensions to Configuration
 ** connect via CipherCloud
 ** your own extension
@@ -47,7 +47,7 @@ and flag / flag:opt are modifiers that can change what your
 connection properties look like before the connection is created
 (see <<Resolving Flags>>).
 
-Given a keyword as connection ,cloudship will do the following:
+Given a keyword as connection, cloudship will do the following:
 
 . check if there is a cached `Org` Record for this keyword
 . if not, build a property map from the keyword by
@@ -85,7 +85,7 @@ Given a property map, cloudship will try to create an `Org` Record by
 After this, the property map should conform to the following spec:
 [source,clojure]
 ----
-include::{sourcedir}/cloudship/connection/props/spec.clj[lines=24..29]
+include::{sourcedir}/cloudship/connection/props/spec.clj[lines=27..29]
 ----
 
 ==== Resolving Flags
@@ -105,6 +105,9 @@ The following flags are included:
 * `kp` - Keepass, reads username and password from a keepass file.
 ** needs `:kpdb` and `:kppath` (vector of path in keepath db).
 ** `:kppass` can be set, otherwise will be prompted.
+* `sfdx` gets session by calling `sfdx:force:org:display -u $usernameOrAlias]`
+** needs sfdx in path
+** uses `:username` or `:org` as `$usernameOrAlias`
 * `cc` - CipherCloud, changes the url to a CipherCloud url.
 ** needs `:cc-domain` and `:cc-alias`.
 ** you probably won't need this.
@@ -140,7 +143,7 @@ the keywords will result in the following property maps
      :username "my@username.de.new"}
 
 (->props :org1:other) =>
-; nothing is overwritten, but username/url are adjustet for the sandbox
+; nothing is overwritten, but username/url are adjusted for the sandbox
     {:api-version "40.0",
      :base-username "my@username.de",
      :full :org1:other,
@@ -164,7 +167,7 @@ the keywords will result in the following property maps
 
 == License
 
-Copyright © 2017 FIXME
+Copyright © 2017 Albrecht Schmidt
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
