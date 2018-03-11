@@ -1,6 +1,7 @@
 (ns cloudship.client.sf-sdk.data.coerce
   (:require [taoensso.timbre :as t]
-            [cloudship.client.sf-sdk.data.types :as types])
+            [cloudship.client.sf-sdk.data.type-conversion :as sdk-convert]
+            [cloudship.client.type-conversion :as convert])
   (:import (com.sforce.ws.bind XmlObject XmlObjectWrapper)
            (com.sforce.soap.partner.sobject ISObject SObject)
            (javax.xml.namespace QName)))
@@ -27,7 +28,7 @@
                       (assoc m (keyword fieldname)
                                (if (or (nil? obj-name) (= "type" fieldname))
                                  (.getValue field)
-                                 (types/sf->clj data-describe-client obj-name fieldname (.getValue field)))))))
+                                 (convert/string->cloudship data-describe-client obj-name fieldname (.getValue field)))))))
             {}
             fields)))
 
@@ -39,13 +40,13 @@
 
 (declare map->sobj)
 
-(defn- set-field [con-or-kw ^XmlObject obj name val]
+(defn- set-field [data-describe-client ^XmlObject obj name val]
   (if (= :delete val)
     (add-field-to-null obj name)
     (cond
-      (map? val) (.setField obj name (map->sobj con-or-kw val))
+      (map? val) (.setField obj name (map->sobj data-describe-client val))
       (= name "type") (.setField obj name val)
-      :else    (.setField obj name (types/clj->sf con-or-kw (.getType ^ISObject obj) name val)))))
+      :else    (.setField obj name (sdk-convert/cloudship->sdk-client (convert/field-type data-describe-client (.getType ^ISObject obj) name) val)))))
 
 (defn- type-first-sort-fn
   "Type call needs to come first"

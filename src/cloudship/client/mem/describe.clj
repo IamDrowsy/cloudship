@@ -43,7 +43,9 @@
           filled-data (:objects (fill-atom-with-keys underlying-describe-client atom unknown-object-names))]
       (map #(get filled-data %) object-names))))
 
-(defn memoize-describe-client [underlying-describe-client]
+(defn memoize-describe-client
+  "Takes a DataDescribeClient and returns a new one that uses an atom to cache every "
+  [underlying-describe-client]
   (let [a (atom {})
         global-fn (memoize-global-fn underlying-describe-client a)
         objects-fn (memoize-sobjects-fn underlying-describe-client a)]

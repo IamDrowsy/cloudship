@@ -20,18 +20,14 @@
   (delete [this describe-client records options]
     (p/delete (:data-client this) describe-client records options)))
 
-
-(defn init-client [kw-or-props]
-  (let [props (props/->props kw-or-props)
-        partner-con (init/->partner-connection props)]
+(defn init-cloudship-client [props]
+  (let [partner-con (init/->partner-connection props)]
     (->CloudshipClient (md/memoize-describe-client partner-con)  partner-con partner-con)))
 
-(defn resolve-data-describe-client [resolveable]
-  (if (satisfies? DataDescribeClient resolveable)
-    resolveable
-    (init-client resolveable)))
-
-(defn resolve-data-client [resolveable]
-  (if (satisfies? DataClient resolveable)
-    resolveable
-    (init-client resolveable)))
+(defn resolve-cloudship-client [resolveable]
+  (cond (instance? CloudshipClient resolveable)
+        resolveable
+        (or (keyword? resolveable) (map? resolveable))
+        (init-cloudship-client (props/->props resolveable))
+        :else (throw (ex-info (str resolveable " is not resolveable to a cloudship client")
+                              {:resolvable resolveable}))))

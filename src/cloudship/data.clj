@@ -7,6 +7,7 @@
             [cloudship.util.result :as result]
             [taoensso.timbre :as t]
             [cloudship.util.user-interact :as interact]
+            [ebenbild.core :refer [like]]
             [clojure.spec.alpha :as s]))
 
 (defn- normalize-simple-var-args
@@ -19,17 +20,17 @@
 (defn describe-global
   "Resolves client-description and calls describe-global with it."
   [client-description]
-  (p/describe-global (c/resolve-data-describe-client client-description)))
+  (p/describe-global (c/resolve-cloudship-client client-description)))
 
 (defn describe-objects
   "Resolves client-description and returns the describe data of the given objects"
   [client-description & object-names]
-  (p/describe-objects (c/resolve-data-describe-client client-description) (normalize-simple-var-args object-names)))
+  (p/describe-objects (c/resolve-cloudship-client client-description) (normalize-simple-var-args object-names)))
 
 (defn describe-object
   "Resolves client-description and returns the describe data of a single object"
   [client-description object-name]
-  (first (describe-objects (c/resolve-data-describe-client client-description) object-name)))
+  (first (describe-objects (c/resolve-cloudship-client client-description) object-name)))
 
 (defn describe-id
   "Object name of an id"
@@ -41,9 +42,8 @@
       (map :name matching))))
 
 (defn- resolved-api-call [client-description api-call & other-args]
-  (let [data-client (c/resolve-data-client client-description)
-        data-describe-client (c/resolve-data-describe-client client-description)]
-    (apply (partial api-call data-client data-describe-client) other-args)))
+  (let [cloudship-client (c/resolve-cloudship-client client-description)]
+    (apply (partial api-call cloudship-client cloudship-client) other-args)))
 
 (defn query
   "Resolves the client and returns the result of this SOQL query-string.

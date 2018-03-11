@@ -35,6 +35,6 @@
 (defn slurp-and-merge-props
   "Slurps and deep-merges all present property files.
   Searches for 'cloudship.edn' in resources, user.home and current path (in this order).
-  Merges all found conf-files."
+  Merges all found conf-files so the latter overwrites the former."
   []
   (apply deep-merge (map slurp-prop-file-if-present (prop-files))))
