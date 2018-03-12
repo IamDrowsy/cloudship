@@ -3,6 +3,7 @@
   (:require [taoensso.timbre :as t]
             [cloudship.client.protocols :refer [DataClient]]
             [cloudship.client.sf-sdk.data.coerce :as coerce]
+            [cloudship.client.sf-sdk.data.bulk :as bulk]
             [clojure.string :as str]
             [clojure.java.data :as jd])
   (:import (com.sforce.soap.partner PartnerConnection QueryResult)
@@ -39,8 +40,10 @@
 
 (defn query
   [^PartnerConnection client data-describe-client query-string options]
-  (doall (map #(coerce/sobj->map data-describe-client %)
-              (query* client query-string options))))
+  (if (:bulk options)
+    (bulk/query client data-describe-client query-string options)
+    (doall (map #(coerce/sobj->map data-describe-client %)
+                (query* client query-string options)))))
 
 ; ------------------ crud calls --------------------------
 (defmethod jd/from-java Boolean [bool]
@@ -92,7 +95,7 @@
  Possible options are: {:partition-size size, :bulk true, :serial true}."
   [client data-describe-client records {:keys [bulk] :as options}]
   (if bulk
-    (#_bulk/insert client data-describe-client records options)
+    (bulk/insert client data-describe-client records options)
     (insert* client (map (partial coerce/map->sobj data-describe-client) records) options)))
 
 (defn ^:no-doc update*
@@ -105,7 +108,7 @@
 Possible options are: {:partition-size size, :bulk true, :serial true}."
   [client data-describe-client records {:keys [bulk] :as options}]
   (if bulk
-    (#_bulk/update client data-describe-client records options)
+    (bulk/update client data-describe-client records options)
     (update* client (map (partial coerce/map->sobj data-describe-client) records) options)))
 
 (defn ^:no-doc upsert*
@@ -119,7 +122,7 @@ Possible options are: {:partition-size size, :bulk true, :serial true}."
   Other options are: {:partition-size size, :bulk true, :serial true}."
   [client data-describe-client records {:keys [bulk upsert-key] :as options}]
   (if bulk
-    (#_bulk/upsert client upsert-key records options)
+    (bulk/upsert client data-describe-client upsert-key records options)
     (upsert* client (name upsert-key) (map (partial coerce/map->sobj data-describe-client) records) options)))
 
 (defn delete
@@ -127,6 +130,6 @@ Possible options are: {:partition-size size, :bulk true, :serial true}."
 Asks for your permission to delete stuff if ':dont-ask true' is not set as option.
 Other options are: {:partition-size size, :bulk true, :hard true, :serial true}."
   [client data-describe-client ids {:keys [bulk hard] :as options}]
-  (cond bulk (#_bulk/delete client ids options)
+  (cond bulk (bulk/delete client data-describe-client ids options)
         hard (throw (IllegalArgumentException. "Cannot hard delete via SOAP API"))
         :else (soap-action* client #(.delete ^PartnerConnection %1 %2) String ids options)))

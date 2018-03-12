@@ -28,6 +28,7 @@
          (cond->> lines
                   true (sc/remove-comments)
                   true (sc/mappify)
+                  object (map #(assoc % :type object))
                   describe-client (sc/cast-with (convert/string->cloudship-cast-map describe-client object-name header))
                   describe-client (map (partial convert/nest-map describe-client))
                   true (doall)))))))

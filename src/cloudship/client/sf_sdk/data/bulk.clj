@@ -1,19 +1,39 @@
 (ns cloudship.client.sf-sdk.data.bulk
-  (:require [clojure.data.json :as json
-              [clojure.set :as set]
-              [clojure.string :as str]
-              [sfclj.data.csv :as typed-csv]
-              [sfclj.util.csv :as csv]
-              [clojure.pprint :as pp]
-              [sfclj.data.expand :as exp]
-              [taoensso.timbre :as t]
-              [com.rpl.specter :as s]])
+  (:require [clojure.data.json :as json]
+            [clojure.set :as set]
+            [clojure.string :as str]
+            [cloudship.util.csv :as csv]
+            [cloudship.client.conversion :as convert]
+            [clojure.pprint :as pp]
+            [taoensso.timbre :as t]
+            [com.rpl.specter :as s]
+            [cloudship.client.describe :as describe])
   (:refer-clojure :exclude [update])
   (:import [com.sforce.async JobInfo OperationEnum ContentType JobStateEnum BatchStateEnum BulkConnection BatchInfo BatchInfoList ConcurrencyMode]
-   [java.io ByteArrayInputStream]))
+           [java.io ByteArrayInputStream]
+           (com.sforce.soap.partner PartnerConnection)
+           (com.sforce.ws ConnectorConfig)))
 
-(defn- ^BulkConnection resolve-con [con-or-kw]
-  (con-cache/resolve-bulk-con con-or-kw))
+(defn- ->async-url [server-url]
+  (apply str
+         (interpose "/" (drop-last
+                          (clojure.string/split
+                            (clojure.string/replace server-url "Soap/u" "async")
+                            #"/")))))
+
+(defn- ^BulkConnection ->bulk-connection [^PartnerConnection pc]
+  (let [pc-config (.getConfig pc)
+        session (.getSessionId pc-config)
+        endpoint (.getServiceEndpoint pc-config)
+        bulk-config (ConnectorConfig.)
+        proxy (.getProxy pc-config)]
+    (doto bulk-config
+      (.setSessionId session)
+      (.setRestEndpoint (->async-url endpoint))
+      (.setCompression true)
+      (.setTraceMessage false)
+      (.setProxy proxy))
+    (BulkConnection. bulk-config)))
 
 
 (def table-widths
@@ -44,7 +64,7 @@
                        (- (.getNumberRecordsProcessed jobinfo) (.getNumberRecordsFailed jobinfo))
                        (.getNumberRecordsFailed jobinfo)])))
 
-(defn- ^JobInfo create-job [con-or-kw {:keys [object op id-field serial] :as job-info}]
+(defn- ^JobInfo create-job [^BulkConnection bulk-con {:keys [object op id-field serial] :as job-info}]
   (let [ji (JobInfo.)]
     (if (= op :upsert)
       (.setExternalIdFieldName ji (name id-field)))
@@ -54,7 +74,7 @@
       (.setObject object)
       (.setOperation (OperationEnum/valueOf (name op)))
       (.setContentType ContentType/CSV))
-    (.createJob (resolve-con con-or-kw) ji)))
+    (.createJob bulk-con ji)))
 
 (defn transform-result-maps [result-map]
   {:success (Boolean/valueOf (:Success result-map))
@@ -65,23 +85,21 @@
 (defn- all-complete-or-failed? [^BatchInfoList batchinfolist]
   (every? #(or (= BatchStateEnum/Completed (.getState ^BatchInfo %))
                (= BatchStateEnum/Failed (.getState ^BatchInfo %))) batchinfolist))
-(defn- await-completion [con-or-kw jobid]
-  (let [con (resolve-con con-or-kw)]
-    (loop [c 0]
-      (let [jobinfo (.getJobStatus con jobid)
-            infolist (.getBatchInfo (.getBatchInfoList con jobid ContentType/CSV))]
-        (if (zero? c)
-          (print-job-status-header jobinfo))
-        (print-job-status-line jobinfo)
-        (if (all-complete-or-failed? infolist)
-          infolist
-          (do (Thread/sleep (min 5000 (* c 1000)))
-              (recur (inc c))))))))
+(defn- await-completion [^BulkConnection bulk-con jobid]
+  (loop [c 0]
+    (let [jobinfo (.getJobStatus bulk-con jobid)
+          infolist (.getBatchInfo (.getBatchInfoList bulk-con jobid ContentType/CSV))]
+      (if (zero? c)
+        (print-job-status-header jobinfo))
+      (print-job-status-line jobinfo)
+      (if (all-complete-or-failed? infolist)
+        infolist
+        (do (Thread/sleep (min 5000 (* c 1000)))
+            (recur (inc c)))))))
 
 (defn- extract-batch-result [^BulkConnection bulk-con jobid batchid]
   (map transform-result-maps
-       (csv/csv-to-maps
-         (csv/parse-csv (slurp (.getBatchResultStream bulk-con jobid batchid))))))
+       (csv/parse-csv (slurp (.getBatchResultStream bulk-con jobid batchid)))))
 
 (defn- extract-batch-results [bulk-con batches]
   (if (empty? batches)
@@ -93,10 +111,8 @@
               []
               batchids))))
 
-(defn- extract-batch-input [^BulkConnection bulk-con jobid batchid]
-  (csv/csv-to-maps
-    (csv/parse-csv
-      (slurp (.getBatchRequestInputStream bulk-con jobid batchid)))))
+(defn- extract-batch-input [^BulkConnection bulk-con describe-client jobid batchid]
+    (csv/parse-csv (slurp (.getBatchRequestInputStream bulk-con jobid batchid)) {:describe-client describe-client}))
 
 (defn- close-job [^BulkConnection con jobid]
   (.updateJob con
@@ -104,35 +120,39 @@
                 (.setId jobid)
                 (.setState JobStateEnum/Closed))))
 
-(defn- extract-query-result [con-or-key object jobid ^BatchInfo batchinfo]
-  (let [con (resolve-con con-or-key)
-        result-ids (.getResult (.getQueryResultList con jobid (.getId batchinfo) ContentType/CSV))
-        result-fn #(->> (.getQueryResultStream con jobid (.getId batchinfo) %)
-                        (slurp)
-                        (csv/parse-csv)
-                        (typed-csv/typed-csv-to-maps con-or-key object))]
+(defn- extract-query-result [bulk-con describe-client object jobid ^BatchInfo batchinfo]
+  (let [result-ids (.getResult (.getQueryResultList bulk-con jobid (.getId batchinfo) ContentType/CSV))
+        result-fn #(-> (.getQueryResultStream bulk-con jobid (.getId batchinfo) %)
+                       (slurp)
+                       (csv/parse-csv {:describe-client describe-client
+                                       :object object}))]
     (doall
       (mapcat result-fn result-ids))))
 
-(defn create-batch [^BulkConnection con job ^String data]
+(defn create-batch! [^BulkConnection con job ^String data]
   (.createBatchFromStream con job (ByteArrayInputStream. (.getBytes data "UTF-8"))))
 
-(defn q [con-or-kw object query-string]
-  (let [con (resolve-con con-or-kw)
-        job (create-job con {:object object :op :query})
-        batches [(create-batch con job query-string)]]
-    (close-job con (.getId job))
-    (let [results (await-completion con (.getId job))]
-      (extract-query-result con-or-kw object (.getId job) (first results)))))
+(defn- object-from-query [query-string]
+  ;TODO build a correct query parser with instaparse?
+  (last (re-find #"FROM\s+([a-zA-Z0-9_]+)" query-string)))
+
+(defn query [partner-connection describe-client query-string options]
+  (let [bulk-con (->bulk-connection partner-connection)
+        object (object-from-query query-string)
+        job (create-job bulk-con {:object object :op :query})
+        batches [(create-batch! bulk-con job query-string)]]
+    (close-job bulk-con (.getId job))
+    (let [results (await-completion bulk-con (.getId job))]
+      (extract-query-result bulk-con describe-client object (.getId job) (first results)))))
 
 (defn- bulk-action*
-  [op con-or-kw object datastrings opts]
-  (let [con (resolve-con con-or-kw)
-        job (create-job con (merge {:object object :op op} opts))
-        batches (doall (map (partial create-batch con job) datastrings))]
-    (close-job con (.getId job))
-    (let [results (await-completion con (.getId job))]
-      (extract-batch-results con batches))))
+  [op partner-connection describe-client object datastrings opts]
+  (let [bulk-con (->bulk-connection partner-connection)
+        job (create-job bulk-con (merge {:object object :op op} opts))
+        batches (doall (map (partial create-batch! bulk-con job) datastrings))]
+    (close-job bulk-con (.getId job))
+    (let [results (await-completion bulk-con (.getId job))]
+      (extract-batch-results bulk-con batches))))
 
 (defn- type-key? [key]
   (= "type" (last (str/split (name key ) #"\."))))
@@ -176,71 +196,38 @@
 (defn- replace-delete-with-na [m]
   (s/setval [s/MAP-VALS (s/pred= :delete)] "#N/A" m))
 
-(defn prepare-data-for-bulk [maps]
+(defn prepare-data-for-bulk [describe-client maps]
   (into []
         (comp
-          (map exp/flatten-map)
+          (map convert/flatten-map)
           (map remove-type-keys)
           (map replace-delete-with-na)
           (map shrink-to-clean-ref-fields)
           (partition-all 10000)
-          (map csv/maps-to-csv)
-          (map csv/csv-string))
+          (map #(csv/csv-string % {:describe-client describe-client})))
         maps))
 
 (defn- bulk-action
-  ([op con-or-kw maps]
-   (bulk-action op con-or-kw maps {}))
-  ([op con-or-kw maps options]
-   (let [object (:type (first maps))
-         data (prepare-data-for-bulk maps)]
-     (bulk-action* op con-or-kw object data options))))
+  [op partner-connection describe-client maps options]
+  (let [object (:type (first maps))
+        data (prepare-data-for-bulk describe-client maps)]
+    (bulk-action* op partner-connection describe-client object data options)))
 
 (defn insert
-  ([con-or-kw maps]
-   (insert con-or-kw maps {}))
-  ([con-or-kw maps opts]
-   (bulk-action :insert con-or-kw maps opts)))
-
-(defn delete*
-  ([con-or-kw ids method]
-   (delete* con-or-kw ids method {}))
-  ([con-or-kw ids method opts]
-   (let [object (first (i/id con-or-kw (first ids)))
-         maps (map (fn [x] {:Id x :type object}) ids)]
-     (bulk-action method con-or-kw maps opts))))
+  [partner-connection describe-client maps opts]
+  (bulk-action :insert partner-connection describe-client maps opts))
 
 (defn delete
-  ([con-or-kw ids]
-   (delete con-or-kw ids {}))
-  ([con-or-kw ids opts]
-   (delete* con-or-kw ids :delete opts)))
-
-(defn hard-delete
-  ([con-or-kw ids]
-   (hard-delete con-or-kw ids {}))
-  ([con-or-kw ids opts]
-   (delete* con-or-kw ids :hardDelete opts)))
+  [partner-connection describe-client ids opts]
+  (let [object (first (describe/describe-id describe-client (first ids)))
+        maps (map (fn [x] {:Id x :type object}) ids)
+        method (if (:hard opts) :hardDelete :delete)]
+    (bulk-action method partner-connection describe-client maps opts)))
 
 (defn update
-  ([con-or-kw maps]
-   (update con-or-kw maps {}))
-  ([con-or-kw maps opts]
-   (bulk-action :update con-or-kw maps opts)))
+  [partner-connection describe-client maps opts]
+  (bulk-action :update partner-connection describe-client maps opts))
 
 (defn upsert
-  ([con-or-kw id-field maps]
-   (upsert con-or-kw id-field maps {}))
-  ([con-or-kw id-field maps opts]
-   (bulk-action :upsert con-or-kw maps (merge {:id-field id-field} opts))))
-
-(defn- bulk-batch-data [con jobid batchid]
-  (let [error-data (extract-batch-result con jobid batchid)
-        input-data (extract-batch-input con jobid batchid)]
-    (map merge input-data error-data)))
-
-(defn- bulk-batches-data [con jobid batchids]
-  (reduce (fn [result batchid]
-            (into result (bulk-batch-data con jobid batchid)))
-          []
-          batchids))
+  [partner-connection describe-client id-field maps opts]
+  (bulk-action :upsert partner-connection describe-client maps (merge {:id-field id-field} opts)))

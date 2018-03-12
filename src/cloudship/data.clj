@@ -3,6 +3,7 @@
   (:refer-clojure :exclude [update])
   (:require [cloudship.client.protocols :as p]
             [cloudship.client.core :as c]
+            [cloudship.client.describe :as describe]
             [cloudship.spec :as cs]
             [cloudship.util.result :as result]
             [taoensso.timbre :as t]
@@ -30,16 +31,12 @@
 (defn describe-object
   "Resolves client-description and returns the describe data of a single object"
   [client-description object-name]
-  (first (describe-objects (c/resolve-cloudship-client client-description) object-name)))
+  (describe/describe-object (c/resolve-cloudship-client client-description) object-name))
 
 (defn describe-id
   "Object name of an id"
   [client-description id]
-  (let [prefix (subs id 0 3)
-        matching (filter #(= prefix (:keyPrefix %)) (describe-global client-description))]
-    (if (empty? matching)
-      (t/info "No Description found for prefix " prefix)
-      (map :name matching))))
+  (describe/describe-id (c/resolve-cloudship-client client-description) id))
 
 (defn- resolved-api-call [client-description api-call & other-args]
   (let [cloudship-client (c/resolve-cloudship-client client-description)]
