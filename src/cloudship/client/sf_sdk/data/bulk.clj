@@ -196,7 +196,7 @@
 (defn- replace-delete-with-na [m]
   (s/setval [s/MAP-VALS (s/pred= :delete)] "#N/A" m))
 
-(defn prepare-data-for-bulk [describe-client maps]
+(defn- prepare-data-for-bulk [describe-client object maps]
   (into []
         (comp
           (map convert/flatten-map)
@@ -204,13 +204,14 @@
           (map replace-delete-with-na)
           (map shrink-to-clean-ref-fields)
           (partition-all 10000)
-          (map #(csv/csv-string % {:describe-client describe-client})))
+          (map #(csv/csv-string % {:describe-client describe-client
+                                   :object object})))
         maps))
 
 (defn- bulk-action
   [op partner-connection describe-client maps options]
   (let [object (:type (first maps))
-        data (prepare-data-for-bulk describe-client maps)]
+        data (prepare-data-for-bulk describe-client object maps)]
     (bulk-action* op partner-connection describe-client object data options)))
 
 (defn insert

@@ -15,4 +15,7 @@
            {:Test 1 :key.nested.nested-again "Test" :key.unnested "Test"}))
     (is (= (nest-map describe-client
                      {:type "Contact" :Id "Test" :Account.Name "AccountName" :Account.Owner.Firstname "TestFirstname"})
-           {:type "Contact" :Id "Test" :Account {:type "Account" :Name "AccountName" :Owner {:type "User" :Firstname "TestFirstname"}}}))))
+           {:type "Contact" :Id "Test" :Account {:type "Account" :Name "AccountName" :Owner {:type "User" :Firstname "TestFirstname"}}}))
+    (is (= (nest-map describe-client
+                     {:type "Contact" :Account.Name nil :Account.Id nil})
+           {:type "Contact" :Account nil}))))

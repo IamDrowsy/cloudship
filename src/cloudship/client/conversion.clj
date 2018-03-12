@@ -53,7 +53,8 @@
     (let [obj-data (first (p/describe-objects data-describe-client [object-name]))]
       (if (cross-reference-field? field-name)
         (field-type-of-cross-reference-field data-describe-client obj-data field-name)
-        (if-let [field (find-field obj-data field-name)]
+        ;find-field-by-reference is needed here, because when we query Account.Name but there is no account attached we get back :Account nil
+        (if-let [field (or (find-field obj-data field-name) (find-field-by-reference-name obj-data field-name))]
           (:type field)
           (do (t/warn "no field" (str object-name "." field-name) "found, defaulting to string") "string"))))))
 
@@ -181,8 +182,10 @@
   ([describe-client m]
    (nest-map describe-client (:type m) m))
   ([describe-client outer-type m]
-   (let [grouped-by-nesting (group-in-maps-by-prefix m)]
-     (apply merge (map (partial inner-map describe-client outer-type) grouped-by-nesting)))))
+   (if (every? nil? (vals m))
+     nil
+     (let [grouped-by-nesting (group-in-maps-by-prefix m)]
+       (apply merge (map (partial inner-map describe-client outer-type) grouped-by-nesting))))))
 
 (declare flatten-map)
 
