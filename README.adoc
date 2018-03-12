@@ -14,10 +14,11 @@ It's designed to work from the repl against many different orgs and supports
 * Extensions to Configuration
 ** connect via CipherCloud
 ** your own extension
-* Convenient methods taking and returning Clojure Datastructures
+* Convenient methods taking and returning Clojure Datastructures via
 ** SOAP-Api
 ** Bulk-Api
 ** Meta-Api
+** csv-Files (cast with the describe-data of an existing org)
 
 == Usage
 
@@ -27,12 +28,12 @@ It's designed to work from the repl against many different orgs and supports
 Every function that talks to a Salesforce Org takes the connection
 as first argument. This can be either:
 
-* an `Org` Record
+* an `CloudshipClient` Record
 * a Map of connection properties
 * a keyword
 
 When working with many orgs from the repl we recommend to configure the usage
-of keywords. The resulting connections will be cached and manged for you.
+of keywords. The resulting connections will be cached and managed for you.
 
 If you don't care about the internals, you can jump to the <<Resolve Examples>>
 
@@ -49,7 +50,7 @@ connection properties look like before the connection is created
 
 Given a keyword as connection, cloudship will do the following:
 
-. check if there is a cached `Org` Record for this keyword
+. check if there is a cached `CloudshipClient` Record for this keyword
 . if not, build a property map from the keyword by
 .. parsing the keyword into a initial prop map (with `:org-name` `:sandbox` `:flags` and `:full` (original kw) as keys)
 .. deep-merges all found `cloudship.edn` in `resource-folder`, `%user-home/.cloudship`,
@@ -69,7 +70,7 @@ Just follow the <<Tutorial>> and you will get the idea.
 
 === From Property Map
 
-Given a property map, cloudship will try to create an `Org` Record by
+Given a property map, cloudship will try to create an `CloudshipClient` Record by
 
 . add or coerce api-version (currently default is `41.0`)
 . build base-url from `:sandbox`, `:instance` and `:my-domain`
@@ -91,7 +92,7 @@ include::{sourcedir}/cloudship/connection/props/spec.clj[lines=27..29]
 ==== Resolving Flags
 
 Flags are instructions to modify the connection properties before trying to
-create the `Org` Record.
+create the `CloudshipClient` Record.
 
 A Flag can either be a simple String or a Map with `{:flag-name string? ...}`.
 The Multimethod `cloudship.connection.props.flags/resolve-flag` is called
@@ -163,6 +164,15 @@ the keywords will result in the following property maps
      :url "https://login.salesforce.com",
      :username "my@username.de"}
 ----
+
+== Known Issues
+
+=== Java SDK Bulk API
+* As the Bulk-API is build with the `csv` content type, inner queries are not supported
+* Also because of this, it's impossible to now wether `SELECT Account.Phone FROM Contact`
+ returns `Account.Phone` as `nil` because `Phone` is `nil` or because there is no Account attached
+ to the Contact. In this case `{:type "Contact" :Account nil}` will be returned. To avoid this,
+ make sure to query a related field that can't be `nil` (like `Id`).
 
 
 == License
