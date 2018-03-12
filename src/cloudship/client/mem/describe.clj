@@ -38,7 +38,7 @@
 (defn- memoize-sobjects-fn [underlying-describe-client atom]
   (fn [object-names]
     (let [known-data (:objects @atom)
-          known-object-names (keys known-data)
+          known-object-names (into #{} (keys known-data))
           unknown-object-names (set/difference (into #{} object-names) known-object-names)
           filled-data (:objects (fill-atom-with-keys underlying-describe-client atom unknown-object-names))]
       (map #(get filled-data %) object-names))))

@@ -2,7 +2,7 @@
   cloudship.client.sf-sdk.data.type-conversion
   (:require [taoensso.timbre :as t]
             [clojure.string :as str]
-            [cloudship.client.type-conversion :as type])
+            [cloudship.client.conversion :as type])
   (:import [java.util Date GregorianCalendar]
            (java.time LocalDate Instant ZoneId ZonedDateTime)))
 
