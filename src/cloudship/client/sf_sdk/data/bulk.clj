@@ -4,6 +4,7 @@
             [clojure.string :as str]
             [cloudship.util.csv :as csv]
             [cloudship.client.conversion :as convert]
+            [cloudship.client.query :as query]
             [clojure.pprint :as pp]
             [taoensso.timbre :as t]
             [com.rpl.specter :as s]
@@ -133,8 +134,7 @@
   (.createBatchFromStream con job (ByteArrayInputStream. (.getBytes data "UTF-8"))))
 
 (defn- object-from-query [query-string]
-  ;TODO build a correct query parser with instaparse?
-  (last (re-find #"FROM\s+([a-zA-Z0-9_]+)" query-string)))
+  (s/select-one [:mainObjectSpec :objectName] (query/parse-soql-query query-string)))
 
 (defn query [partner-connection describe-client query-string options]
   (let [bulk-con (->bulk-connection partner-connection)

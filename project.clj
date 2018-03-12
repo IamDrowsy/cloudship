@@ -12,12 +12,15 @@
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/java.data "0.1.1"]
                  [clojure.java-time "0.3.1"]
+                 [org.mule.tools/salesforce-soql-parser "2.0"]
                  [com.taoensso/nippy "2.14.0"]
                  [ebenbild "0.1.1"]
                  [com.rpl/specter "1.0.5"]
                  [com.force.api/force-partner-api "42.0.0"]
                  [com.force.api/force-wsc "42.0.0"]
                  [com.force.api/force-metadata-api "42.0.0"]]
+
+  :repositories [["mulesoft-releases" "https://repository.mulesoft.org/releases/"]]
 
   :profiles {:dev {:resource-paths ["resources-test"]
                    :dependencies [[org.clojure/test.check "0.10.0-alpha2"]

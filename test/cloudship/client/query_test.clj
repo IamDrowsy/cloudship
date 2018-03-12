@@ -2,6 +2,8 @@
   (:require [clojure.test :refer :all]
             [cloudship.client.query :refer :all]))
 
+;not needed as parser now is a dependency
+#_
 (deftest query-parser-test
   (testing "Testing query-parser"
     (is (= {:object "Account"
