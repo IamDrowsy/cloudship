@@ -105,6 +105,7 @@
 (defmethod string->cloudship-fn* "address" [type] identity)
 (defmethod string->cloudship-fn* "anytype" [type] identity)
 (defmethod string->cloudship-fn* "complexvalue" [type] identity)
+(defmethod string->cloudship-fn* "url" [type] identity)
 
 (defmulti cloudship->string-fn*
   (fn [field-type] field-type))
@@ -131,6 +132,7 @@
 (defmethod cloudship->string-fn* "address" [type] str)
 (defmethod cloudship->string-fn* "anytype" [type] str)
 (defmethod cloudship->string-fn* "complexvalue" [type] str)
+(defmethod cloudship->string-fn* "url" [type] str)
 
 (defn cloudship->string-fn
   "Returns a function that formats a given object into the string for the given field-type

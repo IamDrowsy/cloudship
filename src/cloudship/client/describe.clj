@@ -5,7 +5,7 @@
 (defn describe-object
   "Resolves client-description and returns the describe data of a single object"
   [describe-client object-name]
-  (first (p/describe-objects describe-client object-name)))
+  (first (p/describe-objects describe-client [object-name])))
 
 (defn describe-id
   "Object name of an id"

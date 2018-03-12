@@ -6,6 +6,7 @@
             [cloudship.client.describe :as describe]
             [cloudship.spec :as cs]
             [cloudship.util.result :as result]
+            [cloudship.client.query :as query]
             [taoensso.timbre :as t]
             [cloudship.util.user-interact :as interact]
             [ebenbild.core :refer [like]]
@@ -51,6 +52,43 @@
    (resolved-api-call client-description p/query query-string options)))
 (s/fdef query
         :ret (s/coll-of ::cs/sObject))
+
+(defn- query-opt-error? [{:keys [in]}]
+  (cond (and in (empty? (second in))) (do (t/error "In collection is empty.") true)
+        :else nil))
+
+(defn- in-query-too-long? [in query-string]
+  (and in (> (count query-string) 15000)))
+
+(declare q)
+
+(defn- split-up-in-query [con object field-or-fields options]
+  (let [[in-field in-ids] (:in options)]
+    (t/debug "Query for " object " has to many in-ids, splitting in two queries")
+    (doall (mapcat #(q con object field-or-fields (assoc options :in [in-field %]))
+                   (partition-all (/ (count in-ids) 2) in-ids)))))
+
+(defn q
+  "Structured version of the query function.
+   Is not limited to 2000 records (uses QueryLocator if needed).
+   Also understands '*' or ':all' (all fields), ':required' (required fields) as field.
+   Given a function for field-or-fields, it will run it as predicate on the field metadata.
+   This especially works for keywords like ':updateable' or ':createable'.
+   Always queries Id.
+   Options are {:where  WhereString, :in [infield idset] :all true (query-all)
+                :limit limitnumber :bulk true}
+   If the idset of in is too big and results in a too long query, it will automaticly split the query and concat the results again."
+  ([client-description object field-or-fields]
+   (q client-description object field-or-fields {}))
+  ([client-description object field-or-fields {:keys [in all] :as options}]
+   (let [client (c/resolve-cloudship-client client-description)
+         field-list (query/determine-field-list client field-or-fields object)
+         query-string (query/build-query-string object field-list options)]
+     (cond (query-opt-error? options) []
+           (in-query-too-long? in query-string) (split-up-in-query client object field-list options)
+           :else (query client query-string options)))))
+
+;CRUD stuff
 
 (defn- resolved-crud-call [client-description api-call & other-args]
   (result/report-results!
