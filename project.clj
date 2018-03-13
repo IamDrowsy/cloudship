@@ -12,6 +12,7 @@
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/java.data "0.1.1"]
                  [clojure.java-time "0.3.1"]
+                 [org.clojure/core.cache "0.6.5"]
                  [org.mule.tools/salesforce-soql-parser "2.0"]
                  [com.taoensso/nippy "2.14.0"]
                  [ebenbild "0.1.1"]

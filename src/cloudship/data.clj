@@ -155,3 +155,7 @@
 (s/fdef delete
         :ret (s/coll-of ::cs/result))
 
+(defn evict
+  "Removes the connection for this keyword/prop-map from the cache"
+  [client-description]
+  (c/evict-cloudship-client client-description))
