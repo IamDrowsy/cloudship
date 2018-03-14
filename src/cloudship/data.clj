@@ -159,3 +159,7 @@
   "Removes the connection for this keyword/prop-map from the cache"
   [client-description]
   (c/evict-cloudship-client client-description))
+
+(defn info
+  [client-description]
+  (c/info client-description))

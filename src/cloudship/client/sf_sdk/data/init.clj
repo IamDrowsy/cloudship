@@ -1,7 +1,7 @@
 (ns cloudship.client.sf-sdk.data.init
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as str]
-            [cloudship.client.protocols :refer [DataDescribeClient DataClient]]
+            [cloudship.client.protocols :refer [DataDescribeClient DataClient BaseClient]]
             [cloudship.client.sf-sdk.data.describe :as describe]
             [cloudship.client.sf-sdk.data.core :as impl])
   (:import (com.sforce.ws ConnectorConfig)
@@ -44,6 +44,23 @@
 
 (defn ->partner-connection [props]
   (PartnerConnection. (prepare-config props)))
+
+(defn- ->base-url [service-endpoint]
+  (apply str (interpose "/" (take 3 (str/split service-endpoint #"/")))))
+
+(defn- ->api-version [service-endpoint]
+  (nth (str/split service-endpoint #"/") 6))
+
+(extend-protocol BaseClient
+  PartnerConnection
+  (info [this]
+    (let [config (.getConfig this)]
+      {:type    :sf-sdk
+       :connection this
+       :session (.getSessionId config)
+       :endpoint (->base-url (.getServiceEndpoint config))
+       :api-version (->api-version (.getServiceEndpoint config))
+       :username (.getUsername config)})))
 
 (extend-protocol DataDescribeClient
   PartnerConnection

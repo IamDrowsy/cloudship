@@ -1,6 +1,9 @@
 (ns cloudship.client.protocols
   (:refer-clojure :exclude [update]))
 
+(defprotocol BaseClient
+  (info [this]))
+
 (defprotocol DataClient
   (query [this describe-client query options])
   (insert [this describe-client records options])

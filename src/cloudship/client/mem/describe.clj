@@ -1,9 +1,11 @@
 (ns cloudship.client.mem.describe
-  (:require [cloudship.client.protocols :as p :refer [DataDescribeClient]]
+  (:require [cloudship.client.protocols :as p :refer [DataDescribeClient BaseClient]]
             [taoensso.nippy :as nippy]
             [clojure.set :as set]))
 
 (defrecord InMemDescribeClient [global objects]
+  BaseClient
+  (info [client] {:type :in-mem})
   DataDescribeClient
   (describe-global [client] (:global client))
   (describe-objects [client object-names] (map #(get (:objects client) %) object-names)))
@@ -50,6 +52,10 @@
         global-fn (memoize-global-fn underlying-describe-client a)
         objects-fn (memoize-sobjects-fn underlying-describe-client a)]
     (reify
+      BaseClient
+      (info [_] {:type :memoized
+                 :atom a
+                 :base (p/info underlying-describe-client)})
       DataDescribeClient
       (describe-global [_] (global-fn))
       (describe-objects [_ object-names] (objects-fn object-names)))))

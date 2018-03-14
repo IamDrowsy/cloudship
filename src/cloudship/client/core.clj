@@ -1,5 +1,5 @@
 (ns cloudship.client.core
-  (:require [cloudship.client.protocols :as p :refer [DataDescribeClient DataClient]]
+  (:require [cloudship.client.protocols :as p :refer [DataDescribeClient DataClient BaseClient]]
             [cloudship.connection.props.core :as props]
             [cloudship.client.mem.describe :as md]
             [cloudship.client.sf-sdk.data.init :as init]
@@ -7,7 +7,15 @@
             [taoensso.timbre :as t]
             [clojure.pprint :as pp]))
 
+(extend-protocol BaseClient
+  nil
+  (info [this] nil))
+
 (defrecord CloudshipClient [data-describe-client data-client metadata-client]
+  BaseClient
+  (info [this] {:data-client (p/info (:data-client this))
+                :data-describe-client (p/info (:data-describe-client this))
+                :metadata-client (p/info (:metadata-client this))})
   DataDescribeClient
   (describe-global [this] (p/describe-global (:data-describe-client this)))
   (describe-objects [this object-names] (p/describe-objects (:data-describe-client this) object-names))
@@ -48,3 +56,6 @@
                            :else nil)]
     (swap! cache evict full-name)
     (t/error (str "Cannot evict " resolveable " as it has no known full-name (:full)."))))
+
+(defn info [resolvable]
+  (p/info (resolve-cloudship-client resolvable)))
