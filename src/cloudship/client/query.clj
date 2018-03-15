@@ -18,7 +18,7 @@
       (cons :Id field-list))))
 
 (defn determine-field-list
-  "Determinse the field list for a query based on input. Always adds id."
+  "Determine the field list for a query based on input. Always adds id."
   [describe-client input object]
   (cond
     (= :required input) (determine-field-list describe-client (like {:createable true :nillable false :defaultedOnCreate false}) object)
