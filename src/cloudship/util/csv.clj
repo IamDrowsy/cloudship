@@ -44,13 +44,13 @@
    (if (empty? maps)
      []
      (let [object-name (or object (:type (first maps)))
-           sort-fn (or header-sort identity)
-           header-vec (sort-by sort-fn (or header (keys (convert/flatten-map (first maps)))))]
+           header-keys (or header (keys (convert/flatten-map (first maps))))
+           header-vec (if header-sort (sort-by header-sort header-keys) header-keys)]
        (cond->> maps
                 true (map convert/flatten-map)
                 describe-client (sc/cast-with (convert/cloudship->string-cast-map describe-client object-name header-vec))
-                true (sc/cast-with str)
                 true (sc/vectorize {:header header-vec})
+                true (sc/cast-with str)
                 true (#(apply-with-named-args csv/write-csv % opts)))))))
 
 
