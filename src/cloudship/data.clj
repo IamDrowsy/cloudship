@@ -22,26 +22,25 @@
 (defn describe-global
   "Resolves client-description and calls describe-global with it."
   [client-description]
-  (p/describe-global (c/resolve-cloudship-client client-description)))
+  (p/describe-global client-description))
 
 (defn describe-objects
   "Resolves client-description and returns the describe data of the given objects"
   [client-description & object-names]
-  (p/describe-objects (c/resolve-cloudship-client client-description) (normalize-simple-var-args object-names)))
+  (p/describe-objects client-description (normalize-simple-var-args object-names)))
 
 (defn describe-object
   "Resolves client-description and returns the describe data of a single object"
   [client-description object-name]
-  (describe/describe-object (c/resolve-cloudship-client client-description) object-name))
+  (describe/describe-object client-description object-name))
 
 (defn describe-id
   "Object name of an id"
   [client-description id]
-  (describe/describe-id (c/resolve-cloudship-client client-description) id))
+  (describe/describe-id client-description id))
 
 (defn- resolved-api-call [client-description api-call & other-args]
-  (let [cloudship-client (c/resolve-cloudship-client client-description)]
-    (apply (partial api-call cloudship-client cloudship-client) other-args)))
+  (apply (partial api-call client-description client-description) other-args))
 
 (defn query
   "Resolves the client and returns the result of this SOQL query-string.

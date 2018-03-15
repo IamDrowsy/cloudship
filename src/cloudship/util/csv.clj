@@ -1,7 +1,8 @@
 (ns cloudship.util.csv
   (:require [clojure-csv.core :as csv]
             [semantic-csv.core :as sc]
-            [cloudship.client.conversion :as convert])
+            [cloudship.client.conversion :as convert]
+            [clojure.java.io :as io])
   (:import (java.io Reader)))
 
 (defn ^:no-doc skip-bom-if-present! [^Reader rdr]
@@ -11,10 +12,13 @@
 
 (def default-opts {:encoding "UTF-8"})
 
+(defn- map->varargs [m]
+  (reduce-kv conj [] m))
+
 (defn- apply-with-named-args
   "Calls f with args while the last arg should be a map and is expanded to named args"
   [f & args]
-  (apply f (concat (butlast args) (flatten (seq (last args))))))
+  (apply f (concat (butlast args) (map->varargs (last args)))))
 
 (defn parse-csv
   ([csv-string]
@@ -45,6 +49,25 @@
        (cond->> maps
                 true (map convert/flatten-map)
                 describe-client (sc/cast-with (convert/cloudship->string-cast-map describe-client object-name header-vec))
+                true (sc/cast-with str)
                 true (sc/vectorize {:header header-vec})
                 true (#(apply-with-named-args csv/write-csv % opts)))))))
 
+
+(defn read-csv
+  "Reads a csv file eagerly into a seq of maps."
+  ([file]
+   (read-csv file default-opts))
+  ([file opts]
+   (with-open [rdr (io/reader (io/file file) :encoding (:encoding (merge default-opts opts)))]
+     (skip-bom-if-present! rdr)
+     (parse-csv rdr opts))))
+
+(defn write-csv
+  "Writes a seq of maps as csv. "
+  ([file table]
+   (write-csv file table default-opts))
+  ([file table opts]
+   (io/make-parents file)
+   (apply (partial spit file (csv-string table opts))
+          (map->varargs (merge default-opts opts)))))

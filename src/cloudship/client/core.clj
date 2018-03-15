@@ -5,7 +5,9 @@
             [cloudship.client.sf-sdk.data.init :as init]
             [clojure.core.cache :as cache :refer [has? miss hit lookup evict]]
             [taoensso.timbre :as t]
-            [clojure.pprint :as pp]))
+            [clojure.pprint :as pp])
+  (:import (clojure.lang Keyword)
+           (java.util Map)))
 
 (extend-protocol BaseClient
   nil
@@ -59,3 +61,39 @@
 
 (defn info [resolvable]
   (p/info (resolve-cloudship-client resolvable)))
+
+(extend-type Keyword
+  BaseClient
+  (info [keyword] (info keyword))
+  DataDescribeClient
+  (describe-global [keyword] (p/describe-global (resolve-cloudship-client keyword)))
+  (describe-objects [keyword object-names] (p/describe-objects (resolve-cloudship-client keyword) object-names))
+  DataClient
+  (query [keyword describe-client query-string options]
+    (p/query (resolve-cloudship-client keyword) describe-client query-string options))
+  (insert [keyword describe-client records options]
+    (p/insert (resolve-cloudship-client keyword) describe-client records options))
+  (update [keyword describe-client records options]
+    (p/update (resolve-cloudship-client keyword) describe-client records options))
+  (upsert [keyword describe-client records options]
+    (p/upsert (resolve-cloudship-client keyword) describe-client records options))
+  (delete [keyword describe-client records options]
+    (p/delete (resolve-cloudship-client keyword) describe-client records options)))
+
+(extend-type Map 
+  BaseClient
+  (info [props] (info props))
+  DataDescribeClient
+  (describe-global [props] (p/describe-global (resolve-cloudship-client props)))
+  (describe-objects [props object-names] (p/describe-objects (resolve-cloudship-client props) object-names))
+  DataClient
+  (query [props describe-client query-string options]
+    (p/query (resolve-cloudship-client props) describe-client query-string options))
+  (insert [props describe-client records options]
+    (p/insert (resolve-cloudship-client props) describe-client records options))
+  (update [props describe-client records options]
+    (p/update (resolve-cloudship-client props) describe-client records options))
+  (upsert [props describe-client records options]
+    (p/upsert (resolve-cloudship-client props) describe-client records options))
+  (delete [props describe-client records options]
+    (p/delete (resolve-cloudship-client props) describe-client records options)))
