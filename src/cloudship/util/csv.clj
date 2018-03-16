@@ -2,7 +2,8 @@
   (:require [clojure-csv.core :as csv]
             [semantic-csv.core :as sc]
             [cloudship.client.conversion :as convert]
-            [clojure.java.io :as io])
+            [clojure.java.io :as io]
+            [cloudship.util.sdl :as sdl])
   (:import (java.io Reader)))
 
 (defn ^:no-doc skip-bom-if-present! [^Reader rdr]
@@ -20,6 +21,13 @@
   [f & args]
   (apply f (concat (butlast args) (map->varargs (last args)))))
 
+(defn- cast-with [describe-client maps]
+  (let [first-line (first maps)
+        object (:type first-line)
+        header (remove #(= :type %) (keys first-line))]
+    (sc/cast-with (convert/string->cloudship-cast-map describe-client object header) maps)))
+
+
 (defn parse-csv
   ([csv-string]
    (parse-csv csv-string default-opts))
@@ -27,15 +35,14 @@
    (let [lines (apply-with-named-args csv/parse-csv csv-string opts)]
      (if (or (empty? lines) (empty? (rest lines)))
        [{}]
-       (let [header (map keyword (first lines))
-             object-name (or object (:type (first (sc/mappify (take 2 lines)))))]
-         (cond->> lines
-                  true (sc/remove-comments)
-                  true (sc/mappify)
-                  object (map #(assoc % :type object))
-                  describe-client (sc/cast-with (convert/string->cloudship-cast-map describe-client object-name header))
-                  describe-client (map (partial convert/nest-map describe-client))
-                  true (doall)))))))
+       (cond->> lines
+                true (sc/remove-comments)
+                true (sc/mappify opts)
+                sdl (sdl/apply-sdl sdl)
+                object (map #(assoc % :type object))
+                describe-client (cast-with describe-client)
+                describe-client (map (partial convert/nest-map describe-client))
+                true (doall))))))
 
 (defn csv-string
   ([maps]
