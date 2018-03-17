@@ -1,6 +1,6 @@
-(ns cloudship.client.query
+(ns cloudship.client.data.query
   (:require [clojure.java.data :as jd]
-            [cloudship.client.describe :as describe]
+            [cloudship.client.data.describe :as describe]
             [ebenbild.core :refer [like]])
   (:import (org.mule.tools.soql SOQLParserHelper)))
 

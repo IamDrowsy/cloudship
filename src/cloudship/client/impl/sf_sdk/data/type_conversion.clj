@@ -1,8 +1,8 @@
 (ns ^{:doc "Internal namespace to transform types from cloudship to the salesforce java sdk."}
-  cloudship.client.sf-sdk.data.type-conversion
+  cloudship.client.impl.sf-sdk.data.type-conversion
   (:require [taoensso.timbre :as t]
             [clojure.string :as str]
-            [cloudship.client.conversion :as type])
+            [cloudship.client.data.conversion :as type])
   (:import [java.util Date GregorianCalendar]
            (java.time LocalDate Instant ZoneId ZonedDateTime)))
 

@@ -1,6 +1,6 @@
 (ns
   ^{:doc "Internal Reflection Stuff"}
-  cloudship.client.sf-sdk.util.reflect
+  cloudship.client.impl.sf-sdk.util.reflect
   (:require [clojure.reflect :as r]
             [clojure.string :as str])
   (:import (clojure.lang Named)))

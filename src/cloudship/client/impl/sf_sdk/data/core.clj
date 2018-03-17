@@ -1,9 +1,9 @@
-(ns cloudship.client.sf-sdk.data.core
+(ns cloudship.client.impl.sf-sdk.data.core
   (:refer-clojure :exclude [update])
   (:require [taoensso.timbre :as t]
-            [cloudship.client.protocols :refer [DataClient]]
-            [cloudship.client.sf-sdk.data.coerce :as coerce]
-            [cloudship.client.sf-sdk.data.bulk :as bulk]
+            [cloudship.client.data.protocol :refer [DataClient]]
+            [cloudship.client.impl.sf-sdk.data.coerce :as coerce]
+            [cloudship.client.impl.sf-sdk.data.bulk :as bulk]
             [clojure.string :as str]
             [clojure.java.data :as jd])
   (:import (com.sforce.soap.partner PartnerConnection QueryResult)

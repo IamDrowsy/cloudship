@@ -1,9 +1,9 @@
-(ns cloudship.client.sf-sdk.data.init
+(ns cloudship.client.impl.sf-sdk.data.init
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as str]
-            [cloudship.client.protocols :refer [DataDescribeClient DataClient BaseClient]]
-            [cloudship.client.sf-sdk.data.describe :as describe]
-            [cloudship.client.sf-sdk.data.core :as impl])
+            [cloudship.client.data.protocol :refer [DataDescribeClient DataClient BaseClient]]
+            [cloudship.client.impl.sf-sdk.data.describe :as describe]
+            [cloudship.client.impl.sf-sdk.data.core :as impl])
   (:import (com.sforce.ws ConnectorConfig)
            (com.sforce.soap.partner PartnerConnection)))
 

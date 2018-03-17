@@ -1,5 +1,5 @@
-(ns cloudship.client.mem.describe
-  (:require [cloudship.client.protocols :as p :refer [DataDescribeClient BaseClient]]
+(ns cloudship.client.impl.mem.describe
+  (:require [cloudship.client.data.protocol :as p :refer [DataDescribeClient BaseClient]]
             [taoensso.nippy :as nippy]
             [clojure.set :as set]))
 

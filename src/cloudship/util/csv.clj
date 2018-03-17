@@ -1,7 +1,7 @@
 (ns cloudship.util.csv
   (:require [clojure-csv.core :as csv]
             [semantic-csv.core :as sc]
-            [cloudship.client.conversion :as convert]
+            [cloudship.client.data.conversion :as convert]
             [clojure.java.io :as io]
             [cloudship.util.sdl :as sdl])
   (:import (java.io Reader)))

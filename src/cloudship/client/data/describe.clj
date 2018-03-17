@@ -1,6 +1,6 @@
-(ns cloudship.client.describe
+(ns cloudship.client.data.describe
   (:require [taoensso.timbre :as t]
-            [cloudship.client.protocols :as p]))
+            [cloudship.client.data.protocol :as p]))
 
 (defn describe-object
   "Resolves client-description and returns the describe data of a single object"

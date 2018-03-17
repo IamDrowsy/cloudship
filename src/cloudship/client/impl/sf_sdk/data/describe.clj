@@ -1,5 +1,5 @@
-(ns cloudship.client.sf-sdk.data.describe
-  (:require [cloudship.client.protocols :refer [DataDescribeClient]]
+(ns cloudship.client.impl.sf-sdk.data.describe
+  (:require [cloudship.client.data.protocol :refer [DataDescribeClient]]
             [clojure.java.data :as jd])
   (:import (com.sforce.soap.partner PartnerConnection)))
 

@@ -1,6 +1,6 @@
 (ns cloudship.core
-  (:require [cloudship.client.sf-sdk.data.describe :as describe]
-            [cloudship.client.sf-sdk.data.init :as init]
+  (:require [cloudship.client.impl.sf-sdk.data.describe :as describe]
+            [cloudship.client.impl.sf-sdk.data.init :as init]
             [cloudship.connection.props.core :as props]
             [cloudship.data :as data]
             [ebenbild.core :refer [like]]))

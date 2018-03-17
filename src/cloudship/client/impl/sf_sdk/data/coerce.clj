@@ -1,7 +1,7 @@
-(ns cloudship.client.sf-sdk.data.coerce
+(ns cloudship.client.impl.sf-sdk.data.coerce
   (:require [taoensso.timbre :as t]
-            [cloudship.client.sf-sdk.data.type-conversion :as sdk-convert]
-            [cloudship.client.conversion :as convert])
+            [cloudship.client.impl.sf-sdk.data.type-conversion :as sdk-convert]
+            [cloudship.client.data.conversion :as convert])
   (:import (com.sforce.ws.bind XmlObject XmlObjectWrapper)
            (com.sforce.soap.partner.sobject ISObject SObject)
            (javax.xml.namespace QName)))

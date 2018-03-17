@@ -1,8 +1,8 @@
 (ns cloudship.client.core
-  (:require [cloudship.client.protocols :as p :refer [DataDescribeClient DataClient BaseClient]]
+  (:require [cloudship.client.data.protocol :as p :refer [DataDescribeClient DataClient BaseClient]]
             [cloudship.connection.props.core :as props]
-            [cloudship.client.mem.describe :as md]
-            [cloudship.client.sf-sdk.data.init :as init]
+            [cloudship.client.impl.mem.describe :as md]
+            [cloudship.client.impl.sf-sdk.data.init :as init]
             [clojure.core.cache :as cache :refer [has? miss hit lookup evict]]
             [taoensso.timbre :as t]
             [clojure.pprint :as pp])

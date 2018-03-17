@@ -1,12 +1,12 @@
 (ns ^{:doc "Namespace with the data api"}
   cloudship.data
   (:refer-clojure :exclude [update])
-  (:require [cloudship.client.protocols :as p]
-            [cloudship.client.core :as c]
-            [cloudship.client.describe :as describe]
+  (:require [cloudship.client.data.protocol :as p]
+            [cloudship.client.data.core :as c]
+            [cloudship.client.data.describe :as describe]
+            [cloudship.client.data.query :as query]
             [cloudship.spec :as cs]
             [cloudship.util.result :as result]
-            [cloudship.client.query :as query]
             [taoensso.timbre :as t]
             [cloudship.util.user-interact :as interact]
             [ebenbild.core :refer [like]]

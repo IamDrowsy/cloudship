@@ -1,14 +1,12 @@
-(ns cloudship.client.sf-sdk.data.bulk
-  (:require [clojure.data.json :as json]
-            [clojure.set :as set]
+(ns cloudship.client.impl.sf-sdk.data.bulk
+  (:require [clojure.set :as set]
             [clojure.string :as str]
             [cloudship.util.csv :as csv]
-            [cloudship.client.conversion :as convert]
-            [cloudship.client.query :as query]
-            [clojure.pprint :as pp]
+            [cloudship.client.data.conversion :as convert]
+            [cloudship.client.data.query :as query]
             [taoensso.timbre :as t]
             [com.rpl.specter :as s]
-            [cloudship.client.describe :as describe])
+            [cloudship.client.data.describe :as describe])
   (:refer-clojure :exclude [update])
   (:import [com.sforce.async JobInfo OperationEnum ContentType JobStateEnum BatchStateEnum BulkConnection BatchInfo BatchInfoList ConcurrencyMode]
            [java.io ByteArrayInputStream]

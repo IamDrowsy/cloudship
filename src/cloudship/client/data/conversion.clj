@@ -1,8 +1,8 @@
-(ns cloudship.client.conversion
+(ns cloudship.client.data.conversion
   (:require [ebenbild.core :refer [like]]
             [taoensso.timbre :as t]
             [clojure.string :as str]
-            [cloudship.client.protocols :as p]
+            [cloudship.client.data.protocol :as p]
             [java-time.format :as jtf]
             [java-time.core :as jt]
             [java-time.zone :as jtz]
