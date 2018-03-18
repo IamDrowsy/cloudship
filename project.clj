@@ -25,4 +25,5 @@
 
   :profiles {:dev {:resource-paths ["resources-test"]
                    :dependencies [[org.clojure/test.check "0.10.0-alpha2"]
-                                  [orchestra "2017.11.12-1"]]}})
+                                  [orchestra "2017.11.12-1"]
+                                  [criterium "0.4.4"]]}})
