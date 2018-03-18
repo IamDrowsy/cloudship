@@ -2,24 +2,18 @@
   cloudship.data
   (:refer-clojure :exclude [update])
   (:require [cloudship.client.data.protocol :as p]
-            [cloudship.client.data.core :as c]
+            [cloudship.client.core :as c]
             [cloudship.client.data.describe :as describe]
             [cloudship.client.data.query :as query]
             [cloudship.spec :as cs]
             [cloudship.util.result :as result]
+            [cloudship.util.misc :as misc]
             [taoensso.timbre :as t]
             [cloudship.util.user-interact :as interact]
             [ebenbild.core :refer [like]]
             [clojure.spec.alpha :as s]))
 
-(defn- normalize-simple-var-args
-  "Normalizes varargs by flattening sequential inputs
-  so [[1 2 3] 1 2 [1 2]] becomes [1 2 3 1 2 1 2].
-  Only works for one level."
-  [var-args]
-  (mapcat #(if (sequential? %) % [%]) var-args))
-
-(defn describe-global
+(defn describe
   "Resolves client-description and calls describe-global with it."
   [client-description]
   (p/describe-global client-description))
@@ -27,7 +21,7 @@
 (defn describe-objects
   "Resolves client-description and returns the describe data of the given objects"
   [client-description & object-names]
-  (p/describe-objects client-description (normalize-simple-var-args object-names)))
+  (p/describe-objects client-description (misc/normalize-simple-var-args object-names)))
 
 (defn describe-object
   "Resolves client-description and returns the describe data of a single object"

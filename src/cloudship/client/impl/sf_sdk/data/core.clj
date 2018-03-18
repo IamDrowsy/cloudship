@@ -4,6 +4,7 @@
             [cloudship.client.data.protocol :refer [DataClient]]
             [cloudship.client.impl.sf-sdk.data.coerce :as coerce]
             [cloudship.client.impl.sf-sdk.data.bulk :as bulk]
+            [cloudship.util.java-data-extension]
             [clojure.string :as str]
             [clojure.java.data :as jd])
   (:import (com.sforce.soap.partner PartnerConnection QueryResult)
@@ -46,8 +47,6 @@
                 (query* client query-string options)))))
 
 ; ------------------ crud calls --------------------------
-(defmethod jd/from-java Boolean [bool]
-  (if (nil? bool) nil (.booleanValue bool)))
 
 (defn- result-to-map
   "Takes a SaveResult/DeleteResult and turns it into a map"
