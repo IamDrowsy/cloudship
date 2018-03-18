@@ -5,7 +5,7 @@
 
 (defrecord InMemDescribeClient [global objects]
   BaseClient
-  (info [client] {:type :in-mem})
+  (info [client] {:type :in-mem-data-describe})
   DataDescribeClient
   (describe-global [client] (:global client))
   (describe-objects [client object-names] (map #(get (:objects client) %) object-names)))
@@ -53,7 +53,7 @@
         objects-fn (memoize-sobjects-fn underlying-describe-client a)]
     (reify
       BaseClient
-      (info [_] {:type :memoized
+      (info [_] {:type :memoized-data-describe
                  :atom a
                  :base (p/info underlying-describe-client)})
       DataDescribeClient

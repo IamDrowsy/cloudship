@@ -1,8 +1,11 @@
 (ns cloudship.client.core
   (:require [cloudship.client.data.protocol :as p :refer [DataDescribeClient DataClient BaseClient]]
+            [cloudship.client.meta.protocol :as mp :refer [MetadataClient MetadataDescribeClient]]
             [cloudship.connection.props.core :as props]
             [cloudship.client.impl.mem.describe :as md]
+            [cloudship.client.impl.mem.meta-describe :as mmd]
             [cloudship.client.impl.sf-sdk.data.init :as init]
+            [cloudship.client.impl.sf-sdk.meta.core]
             [clojure.core.cache :as cache :refer [has? miss hit lookup evict]]
             [taoensso.timbre :as t]
             [clojure.pprint :as pp])
@@ -13,10 +16,11 @@
   nil
   (info [this] nil))
 
-(defrecord CloudshipClient [data-describe-client data-client metadata-client]
+(defrecord CloudshipClient [data-describe-client data-client metadata-describe-client metadata-client]
   BaseClient
   (info [this] {:data-client (p/info (:data-client this))
                 :data-describe-client (p/info (:data-describe-client this))
+                :metadata-describe-client (p/info (:metadata-describe-client this))
                 :metadata-client (p/info (:metadata-client this))})
   DataDescribeClient
   (describe-global [this] (p/describe-global (:data-describe-client this)))
@@ -31,13 +35,24 @@
   (upsert [this describe-client records options]
     (p/upsert (:data-client this) describe-client records options))
   (delete [this describe-client records options]
-    (p/delete (:data-client this) describe-client records options)))
+    (p/delete (:data-client this) describe-client records options))
+  MetadataDescribeClient
+  (describe [this]
+    (mp/describe (:metadata-describe-client this)))
+  (describe-type [this type]
+    (mp/describe-type (:metadata-describe-client this) type))
+  MetadataClient
+  (read [this meta-describe-client metadata-type metadata-names]
+    (mp/read (:metadata-client this) meta-describe-client metadata-type metadata-names))
+  (update [this meta-describe-client metadata]
+    (mp/update (:metadata-client this) meta-describe-client metadata)))
 
 (defn init-cloudship-client [props]
   (t/infof "Initializing new connection for %s" (:full props))
   (t/info (str "Connection data is: \n" (with-out-str (pp/pprint (select-keys props [:proxy :username :url])))))
   (let [partner-con (init/->partner-connection props)]
-    (->CloudshipClient (md/memoize-describe-client partner-con)  partner-con partner-con)))
+    (->CloudshipClient (md/memoize-describe-client partner-con) partner-con
+                       (mmd/memoize-describe-client partner-con) partner-con)))
 
 (def cache (atom (cache/ttl-cache-factory {} :ttl 3.6e+6))) ;one hour
 
@@ -78,7 +93,17 @@
   (upsert [keyword describe-client records options]
     (p/upsert (resolve-cloudship-client keyword) describe-client records options))
   (delete [keyword describe-client records options]
-    (p/delete (resolve-cloudship-client keyword) describe-client records options)))
+    (p/delete (resolve-cloudship-client keyword) describe-client records options))
+  MetadataDescribeClient
+  (describe [keyword]
+    (mp/describe (resolve-cloudship-client keyword)))
+  (describe-type [keyword type]
+    (mp/describe-type (resolve-cloudship-client keyword) type))
+  MetadataClient
+  (read [keyword meta-describe-client metadata-type metadata-names]
+    (mp/read (resolve-cloudship-client keyword) meta-describe-client metadata-type metadata-names))
+  (update [keyword meta-describe-client metadata]
+    (mp/update (resolve-cloudship-client keyword) meta-describe-client metadata)))
 
 (extend-type Map 
   BaseClient
