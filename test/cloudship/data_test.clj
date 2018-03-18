@@ -21,11 +21,17 @@
       (is (= (data/query test-con subquery)
              (data/query test-con subquery {:bulk true}))))))
 
-(defn query-account [id]
-  (data/query test-con (str "SELECT Name FROM Account WHERE Id = '" id "'")))
+(defn query-account
+  ([id]
+   (query-account id {}))
+  ([id options]
+   (data/query test-con (str "SELECT Name FROM Account WHERE Id = '" id "'") options)))
 
-(defn query-account-name [id]
-  (:Name (first (query-account id))))
+(defn query-account-name
+  ([id]
+   (query-account-name id {}))
+  ([id options]
+   (:Name (first (query-account id options)))))
 
 (defn simple-round-trip [test-options]
   (let [account-name (str (UUID/randomUUID))
@@ -35,10 +41,21 @@
     (data/update test-con [{:type "Account" :Id id :Name account-name2}] test-options)
     (is (= account-name2 (query-account-name id)))
     (data/delete test-con [{:type "Account" :Id id}] (assoc test-options :dont-ask true))
-    (is (empty? (query-account id)))))
+    (is (empty? (query-account id)))
+    (data/undelete test-con [id])
+    (is (= account-name2 (query-account-name id)))
+    (data/delete test-con [id] (assoc test-options :dont-ask true))
+    (is (empty? (query-account id)))
+    (is (= account-name2 (query-account-name id {:all true})))
+    (data/remove-from-bin test-con [id])
+    (is (= "Entity is not in the recycle bin"
+           (-> (data/undelete test-con [{:Id id}])
+               first :errors first :message)))
+    ;Query all still finds the record if when undelete does not.
+    #_(is (empty? (query-account id {:all true})))))
 
 (deftest data-round-trip
-  (testing "Insert, upsert and delete of simple data"
+  (testing "Insert, upsert, delete, undelete, remove-from-bin of simple data"
     (simple-round-trip {}))
   (testing "Insert, upsert and delete of simple data for bulk"
     (simple-round-trip {:bulk true})))

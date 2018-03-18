@@ -34,8 +34,12 @@
     (p/update (:data-client this) describe-client records options))
   (upsert [this describe-client records options]
     (p/upsert (:data-client this) describe-client records options))
-  (delete [this describe-client records options]
-    (p/delete (:data-client this) describe-client records options))
+  (delete [this describe-client ids options]
+    (p/delete (:data-client this) describe-client ids options))
+  (undelete [this describe-client ids options]
+    (p/undelete (:data-client this) describe-client ids options))
+  (remove-from-bin [this describe-client ids options]
+    (p/remove-from-bin (:data-client this) describe-client ids options))
   MetadataDescribeClient
   (describe [this]
     (mp/describe (:metadata-describe-client this)))
@@ -92,8 +96,12 @@
     (p/update (resolve-cloudship-client keyword) describe-client records options))
   (upsert [keyword describe-client records options]
     (p/upsert (resolve-cloudship-client keyword) describe-client records options))
-  (delete [keyword describe-client records options]
-    (p/delete (resolve-cloudship-client keyword) describe-client records options))
+  (delete [keyword describe-client ids options]
+    (p/delete (resolve-cloudship-client keyword) describe-client ids options))
+  (undelete [keyword describe-client ids options]
+    (p/undelete (resolve-cloudship-client keyword) describe-client ids options))
+  (remove-from-bin [keyword describe-client ids options]
+    (p/remove-from-bin (resolve-cloudship-client keyword) describe-client ids options))
   MetadataDescribeClient
   (describe [keyword]
     (mp/describe (resolve-cloudship-client keyword)))
@@ -120,5 +128,9 @@
     (p/update (resolve-cloudship-client props) describe-client records options))
   (upsert [props describe-client records options]
     (p/upsert (resolve-cloudship-client props) describe-client records options))
-  (delete [props describe-client records options]
-    (p/delete (resolve-cloudship-client props) describe-client records options)))
+  (delete [props describe-client ids options]
+    (p/delete (resolve-cloudship-client props) describe-client ids options))
+  (undelete [props describe-client ids options]
+    (p/undelete (resolve-cloudship-client props) describe-client ids options))
+  (remove-from-bin [props describe-client ids options]
+    (p/remove-from-bin (resolve-cloudship-client props) describe-client ids options)))

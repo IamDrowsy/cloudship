@@ -78,5 +78,9 @@
   (upsert [this describe-client records options]
     (impl/upsert this describe-client records options))
   (delete [this describe-client records options]
-    (impl/delete this describe-client records options)))
+    (impl/delete this describe-client records options))
+  (undelete [this describe-client ids options]
+    (impl/undelete this ids options))
+  (remove-from-bin [this describe-client ids options]
+    (impl/remove-from-bin this ids options)))
 

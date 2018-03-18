@@ -132,3 +132,19 @@ Other options are: {:partition-size size, :bulk true, :hard true, :serial true}.
   (cond bulk (bulk/delete client data-describe-client ids options)
         hard (throw (IllegalArgumentException. "Cannot hard delete via SOAP API"))
         :else (soap-action* client #(.delete ^PartnerConnection %1 %2) String ids options)))
+
+(defn undelete
+  "Undeletes records with the given ids.
+Possible options are: {:partition-size size, parallel? true}.
+Parallel will just use 10 soap cons so be aware of row locks."
+  ([client ids]
+   (undelete client ids {}))
+  ([client ids options]
+   (soap-action* client #(.undelete ^PartnerConnection %1 %2) String ids options)))
+
+(defn remove-from-bin
+  "Removes records with the given ids from the bin."
+  ([client ids]
+   (remove-from-bin client ids {}))
+  ([client ids options]
+   (soap-action* client #(.emptyRecycleBin ^PartnerConnection %1 %2) String ids options)))

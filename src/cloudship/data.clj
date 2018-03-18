@@ -131,7 +131,7 @@
     (:Id id-or-map)))
 
 (defn delete
-  "Deletes the given maps or ids"
+  "Deletes the given maps (with ids) or ids"
   ([client-description records-or-ids]
    (delete client-description records-or-ids {}))
   ([client-description records-or-ids options]
@@ -147,6 +147,26 @@
          (do (t/info "Aborted by user.") []))))))
 (s/fdef delete
         :ret (s/coll-of ::cs/result))
+
+(defn undelete
+  "Undeletes the given maps (with ids) or ids"
+  ([cloudship records-or-ids]
+   (undelete cloudship records-or-ids {}))
+  ([cloudship records-or-ids options]
+   (if (empty? records-or-ids)
+     (do (t/info "Nothing to undelete.") [])
+     (let [ids (map ->id records-or-ids)]
+       (resolved-crud-call cloudship p/undelete ids options)))))
+
+(defn remove-from-bin
+  "Removes the given maps (with ids) or ids from the bin"
+  ([cloudship records-or-ids]
+   (remove-from-bin cloudship records-or-ids {}))
+  ([cloudship records-or-ids options]
+   (if (empty? records-or-ids)
+     (do (t/info "Nothing to remove from bin.") [])
+     (let [ids (map ->id records-or-ids)]
+       (resolved-crud-call cloudship p/remove-from-bin ids options)))))
 
 (defn evict
   "Removes the connection for this keyword/prop-map from the cache"
