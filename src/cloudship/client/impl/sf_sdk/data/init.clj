@@ -46,7 +46,7 @@
   (PartnerConnection. (prepare-config props)))
 
 (defn- ->base-url [service-endpoint]
-  (apply str (interpose "/" (take 3 (str/split service-endpoint #"/")))))
+  (str/join "/" (take 3 (str/split service-endpoint #"/"))))
 
 (defn- ->api-version [service-endpoint]
   (nth (str/split service-endpoint #"/") 6))

@@ -40,10 +40,9 @@
   KeePassFile
   (subgroup [this name]
     (let [group (.getGroupByName this name)]
-      (if group
-        group
-        (throw (ex-info (format "Cannot find group %s" name)
-                        {:name name :file this}))))))
+      (or group
+          (throw (ex-info (format "Cannot find group %s" name)
+                          {:name name :file this}))))))
 
 (defn- ^Entry entry* [database path-to-entry password]
   (let [db (resolve-database database password)]

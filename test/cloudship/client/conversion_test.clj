@@ -1,7 +1,8 @@
 (ns cloudship.client.conversion-test
   (:require [clojure.test :refer :all]
-            [cloudship.client.conversion :refer :all]
-            [cloudship.client.mem.describe :as mem]
+            [cloudship.client.data.conversion :refer :all]
+            [cloudship.client.impl.mem.describe :as mem]
+            [cloudship.data]
             [clojure.java.io :as io]))
 
 (defonce describe-client (mem/from-nippy (io/resource "data-describe.nippy")))

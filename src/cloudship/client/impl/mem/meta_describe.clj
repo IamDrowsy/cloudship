@@ -28,9 +28,8 @@
 (defn- memoize-global-fn [underlying-describe-client atom]
   (fn []
     (let [{:keys [global]} @atom]
-      (if global
-        global
-        (:global (swap! atom assoc :global (mp/describe underlying-describe-client)))))))
+      (or global
+          (:global (swap! atom assoc :global (mp/describe underlying-describe-client)))))))
 
 
 (defn- memoize-type-fn [underlying-describe-client atom]

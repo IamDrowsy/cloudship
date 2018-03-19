@@ -14,11 +14,10 @@
            (com.sforce.ws ConnectorConfig)))
 
 (defn- ->async-url [server-url]
-  (apply str
-         (interpose "/" (drop-last
-                          (clojure.string/split
-                            (clojure.string/replace server-url "Soap/u" "async")
-                            #"/")))))
+  (str/join "/" (drop-last
+                  (clojure.string/split
+                    (clojure.string/replace server-url "Soap/u" "async")
+                    #"/"))))
 
 (defn- ^BulkConnection ->bulk-connection [^PartnerConnection pc]
   (let [pc-config (.getConfig pc)
@@ -39,11 +38,11 @@
   [15 15 7 4 4 4 4 2 10 10 10 10])
 
 (defn- untrim [i v]
-  (str (apply str (repeat (- (table-widths i) (count (str v))) " ")) v))
+  (str (str/join (repeat (- (table-widths i) (count (str v))) " ")) v))
 
 
 (defn- table-line [vals]
-  (apply str (interpose " | " (map-indexed untrim vals))))
+  (str/join " | " (map-indexed untrim vals)))
 
 (defn print-job-status-header [^JobInfo jobinfo]
   (t/info "Running Job " (.getId jobinfo))

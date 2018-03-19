@@ -29,9 +29,9 @@
   (let [obj-data (first (p/describe-objects data-describe-client [source-object-name]))
         reference-field (find-field-by-reference-name obj-data reference-field-name)]
     (if-let [references (:referenceTo reference-field)]
-      (do (if (< 1 (count references))
-            (t/warn "field" reference-field-name "is polymorphic with" (:referenceTo reference-field) " defaulting to first")
-            (first (:referenceTo reference-field))))
+      (if (< 1 (count references))
+        (t/warn "field" reference-field-name "is polymorphic with" (:referenceTo reference-field) " defaulting to first")
+        (first (:referenceTo reference-field)))
       (throw (ex-info (str "no field " reference-field-name " found, defaulting to string") {:describe-client data-describe-client
                                                                                              :source-object-name source-object-name
                                                                                              :reference-field-name reference-field-name})))))
@@ -68,8 +68,7 @@
   ([field-type]
    (let [parse-fn (string->cloudship-fn* field-type)]
      (fn [string]
-       (if (or (nil? string) (str/blank? string))
-         nil
+       (when-not (or (nil? string) (str/blank? string))
          (parse-fn string)))))
   ([data-describe-client object-name field-name]
    (string->cloudship-fn (field-type data-describe-client object-name field-name))))
@@ -184,8 +183,7 @@
   ([describe-client m]
    (nest-map describe-client (:type m) m))
   ([describe-client outer-type m]
-   (if (every? nil? (vals m))
-     nil
+   (when-not (every? nil? (vals m))
      (let [grouped-by-nesting (group-in-maps-by-prefix m)]
        (apply merge (map (partial inner-map describe-client outer-type) grouped-by-nesting))))))
 

@@ -15,8 +15,8 @@
 (s/def ::port int?)
 (s/def ::proxy (s/keys :req-un [::host ::port]))
 
-(s/def ::raw-api-version (s/or :int (s/and int? #(< 0 %))
-                               :float (s/and float? #(< 0 %))
+(s/def ::raw-api-version (s/or :int (s/and int? pos?)
+                               :float (s/and float? pos?)
                                :string (s/and string? #(re-matches #"[\d]+(\.\d)?" %))))
 
 (s/def ::api-version (s/and string? #(re-matches #"[\d]+(\.\d)" %)))

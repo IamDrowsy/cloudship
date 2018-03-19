@@ -1,6 +1,6 @@
 (ns cloudship.client.query-test
   (:require [clojure.test :refer :all]
-            [cloudship.client.query :refer :all]))
+            [cloudship.client.data.query :refer :all]))
 
 ;not needed as parser now is a dependency
 #_

@@ -20,9 +20,8 @@
                     nested-childs? (not (empty? (iterator-seq (.getChildren field))))
                     fieldname (.getLocalPart (.getName field))]
                 (cond inner-query? (assoc m (keyword fieldname)
-                                            (into []
-                                                  (map (partial sobj->map data-describe-client)
-                                                       (extract-inner-query field))))
+                                            (mapv (partial sobj->map data-describe-client)
+                                                  (extract-inner-query field)))
                       nested-childs? (assoc m (keyword fieldname) (sobj->map data-describe-client field))
                       :else
                       (assoc m (keyword fieldname)
@@ -56,5 +55,5 @@
 
 (defn map->sobj [con-or-kw m]
   (let [obj (SObject.)]
-    (dorun (map #(set-field con-or-kw obj (name (key %)) (val %)) (sort-by type-first-sort-fn m)))
+    (run! #(set-field con-or-kw obj (name (key %)) (val %)) (sort-by type-first-sort-fn m))
     obj))

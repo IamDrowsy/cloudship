@@ -13,8 +13,7 @@
 
 (defn cloudship->sdk-client
   [field-type value]
-  (if (or (nil? value) (and (string? value) (str/blank? value)))
-    nil
+  (when-not (or (nil? value) (and (string? value) (str/blank? value)))
     (cloudship->sdk-client* field-type value)))
 
 (defmacro def-cloudship->sdk-client* [sf-type clj-type f]
@@ -34,6 +33,6 @@
 (def-cloudship->sdk-client* "date" LocalDate local-date->date)
 (def-cloudship->sdk-client* "datetime" Instant instant->calendar)
 (def-cloudship->sdk-client* "int" String #(Integer/parseInt %))
-(def-cloudship->sdk-client* "int" Long (fnil #(int %) nil))
+(def-cloudship->sdk-client* "int" Long (fnil int nil))
 (def-cloudship->sdk-client* "boolean" String #(Boolean/parseBoolean %))
 (def-cloudship->sdk-client* "base64" String #(.getBytes %))

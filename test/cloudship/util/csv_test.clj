@@ -1,7 +1,7 @@
 (ns cloudship.util.csv-test
   (:require [clojure.test :refer :all]
             [cloudship.util.csv :refer :all]
-            [cloudship.client.mem.describe :as mem]
+            [cloudship.client.impl.mem.describe :as mem]
             [clojure.java.io :as io]
             [clojure.string :as str]))
 

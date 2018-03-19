@@ -1,7 +1,8 @@
 (ns cloudship.client.data.query
   (:require [clojure.java.data :as jd]
             [cloudship.client.data.describe :as describe]
-            [ebenbild.core :refer [like]])
+            [ebenbild.core :refer [like]]
+            [clojure.string :as str])
   (:import (org.mule.tools.soql SOQLParserHelper)))
 
 (defn parse-soql-query [query-string]
@@ -11,7 +12,7 @@
   (map (comp keyword :name) fields))
 
 (defn- add-id [field-list]
-  (let [field-set (into #{} field-list)]
+  (let [field-set (set field-list)]
     (if (or (field-set :Id)
             (field-set "Id"))
       field-list
@@ -28,11 +29,11 @@
     :else input))
 
 (defn- in-string [id-set]
-  (str " ('" (apply str (interpose "','" id-set)) "')"))
+  (str " ('" (str/join "','" id-set) "')"))
 
 (defn- field-string [field-or-fields]
   (if (coll? field-or-fields)
-    (apply str (interpose "," (map name field-or-fields)))
+    (str/join "," (map name field-or-fields))
     (name field-or-fields)))
 
 (defn build-query-string [obj field-or-fields options]

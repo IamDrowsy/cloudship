@@ -20,16 +20,15 @@
   (nippy/freeze-to-file file client))
 
 (defn from-nippy [file]
-  (nippy/thaw-from-file file))
+  (map->InMemDescribeClient (:content (:nippy/unthawable (nippy/thaw-from-file file)))))
 
 
 ; Memoize describe client
 (defn- memoize-global-fn [underlying-describe-client atom]
   (fn []
     (let [{:keys [global]} @atom]
-      (if global
-        global
-        (:global (swap! atom assoc :global (p/describe-global underlying-describe-client)))))))
+      (or global
+          (:global (swap! atom assoc :global (p/describe-global underlying-describe-client)))))))
 
 (defn- fill-atom-with-keys [underlying-describe-client atom object-names]
   (if (empty? object-names)
@@ -40,8 +39,8 @@
 (defn- memoize-sobjects-fn [underlying-describe-client atom]
   (fn [object-names]
     (let [known-data (:objects @atom)
-          known-object-names (into #{} (keys known-data))
-          unknown-object-names (set/difference (into #{} object-names) known-object-names)
+          known-object-names (set (keys known-data))
+          unknown-object-names (set/difference (set object-names) known-object-names)
           filled-data (:objects (fill-atom-with-keys underlying-describe-client atom unknown-object-names))]
       (map #(get filled-data %) object-names))))
 

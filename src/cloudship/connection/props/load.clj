@@ -17,7 +17,7 @@
                   (into [] (concat v1 v2))
                   :else v2))]
     (when (some identity vs)
-      (reduce #(rec-merge %1 %2) v vs))))
+      (reduce rec-merge v vs))))
 
 (defn- slurp-prop-file-if-present
   [file]
