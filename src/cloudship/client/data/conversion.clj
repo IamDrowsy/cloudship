@@ -83,6 +83,7 @@
 (def date-formatter (jtf/formatter :iso-date))
 
 (defmethod string->cloudship-fn* "string" [type] identity)
+(defmethod string->cloudship-fn* "email" [type] identity)
 (defmethod string->cloudship-fn* "reference" [type] identity)
 (defmethod string->cloudship-fn* "id" [type] identity)
 (defmethod string->cloudship-fn* "int" [type] #(Integer/parseInt %))
@@ -110,6 +111,7 @@
   (fn [field-type] field-type))
 
 (defmethod cloudship->string-fn* "string" [type] str)
+(defmethod cloudship->string-fn* "email" [type] str)
 (defmethod cloudship->string-fn* "reference" [type] str)
 (defmethod cloudship->string-fn* "id" [type] str)
 (defmethod cloudship->string-fn* "int" [type] str)
