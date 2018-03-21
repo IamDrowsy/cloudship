@@ -29,20 +29,26 @@
 
 
 (defn parse-csv
+  "Parses a csv-string with the given options. Also attaches the original header as metadata to the result seq"
   ([csv-string]
    (parse-csv csv-string default-opts))
   ([csv-string {:keys [describe-client sdl object] :as opts}]
    (let [lines (apply-with-named-args csv/parse-csv csv-string opts)]
-     (if (or (empty? lines) (empty? (rest lines)))
-       [{}]
-       (cond->> lines
-                true (sc/remove-comments)
-                true (sc/mappify opts)
-                sdl (sdl/apply-sdl sdl)
-                object (map #(assoc % :type object))
-                describe-client (cast-with describe-client)
-                describe-client (map (partial convert/nest-map describe-client))
-                true (doall))))))
+     (if (empty? lines)
+       []
+       (let [header (map keyword (first lines))]
+         (with-meta
+           (if (empty? (rest lines))
+             []
+             (cond->> lines
+                     true (sc/remove-comments)
+                     true (sc/mappify opts)
+                     sdl (sdl/apply-sdl sdl)
+                     object (map #(assoc % :type object))
+                     describe-client (cast-with describe-client)
+                     describe-client (map (partial convert/nest-map describe-client))
+                     true (doall)))
+           {:header header}))))))
 
 (defn csv-string
   ([maps]
