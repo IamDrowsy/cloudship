@@ -1,5 +1,6 @@
 (ns cloudship.client.impl.sf-sdk.meta.core
   (:require [clojure.string :as str]
+            [cloudship.client.data.protocol :refer [BaseClient]]
             [cloudship.client.meta.protocol :refer [MetadataClient MetadataDescribeClient]]
             [cloudship.util.java-data-extension]
             [clojure.java.data :as jd])
@@ -12,7 +13,7 @@
 (defn- ->meta-url [soap-url]
   (str/replace soap-url "/u/" "/m/"))
 
-(defn- ^MetadataConnection ->metadata-connection [^PartnerConnection pc]
+(defn ^MetadataConnection ->metadata-connection [^PartnerConnection pc]
   (let [pc-config (.getConfig pc)
         session (.getSessionId pc-config)
         endpoint (.getServiceEndpoint pc-config)
@@ -21,11 +22,12 @@
     (doto meta-config
       (.setSessionId session)
       (.setServiceEndpoint (->meta-url endpoint))
+      (.setUsername (.getUsername pc-config))
       (.setProxy proxy))
     (MetadataConnection. meta-config)))
 
-(defn- ->api-version [^MetadataConnection meta-con]
-  (Double/parseDouble (last (butlast (str/split (.getServiceEndpoint (.getConfig meta-con)) #"/")))))
+(defn- ->api-version [url]
+  (Double/parseDouble (last (butlast (str/split url #"/")))))
 
 (defn- add-default-namespace-if-missing [type]
   (if (str/starts-with? type "{")
@@ -39,8 +41,19 @@
 (defn- describe-type [metadata-con type]
   (jd/from-java (.describeValueType metadata-con (add-default-namespace-if-missing type))))
 
+(extend-protocol BaseClient
+  MetadataConnection
+  (info [this]
+    (let [config (.getConfig this)]
+      {:type    :sf-meta-sdk
+       :connection this
+       :session (.getSessionId config)
+       :endpoint (->meta-url (.getServiceEndpoint config))
+       :api-version (->api-version (.getServiceEndpoint config))
+       :username (.getUsername config)})))
+
 (extend-protocol MetadataDescribeClient
-  PartnerConnection
+  MetadataConnection
   (describe [this]
     (describe (->metadata-connection this)))
   (describe-type [this type]
@@ -59,7 +72,7 @@
   (doall (mapcat #(update-metadata-parted meta-con "CustomObject" %) (partition-all 10 metadata))))
 
 (extend-protocol MetadataClient
-  PartnerConnection
+  MetadataConnection
   (read [this meta-describe-client meta-type names]
     (read-metadata (->metadata-connection this) meta-describe-client meta-type names))
   (update [this meta-describe-client metadata]

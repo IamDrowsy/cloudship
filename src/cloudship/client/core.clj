@@ -5,8 +5,8 @@
             [cloudship.connection.props.core :as props]
             [cloudship.client.impl.mem.describe :as md]
             [cloudship.client.impl.mem.meta-describe :as mmd]
-            [cloudship.client.impl.sf-sdk.data.init :as init]
-            [cloudship.client.impl.sf-sdk.meta.core]
+            [cloudship.client.impl.sf-sdk.data.init :as data]
+            [cloudship.client.impl.sf-sdk.meta.core :as meta]
             [clojure.core.cache :as cache :refer [has? miss hit lookup evict]]
             [taoensso.timbre :as t]
             [clojure.pprint :as pp])
@@ -43,9 +43,12 @@
     (t/infof "Initializing new connection for %s" (:cache-name props))
     (t/info "Initializing new connection without :cache-name"))
   (t/info (str "Connection data is: \n" (with-out-str (pp/pprint (select-keys props [:proxy :username :url])))))
-  (let [partner-con (init/->partner-connection props)]
-    (->CloudshipClient (md/memoize-describe-client partner-con) partner-con
-                       (mmd/memoize-describe-client partner-con) partner-con)))
+  (let [partner-con (data/->partner-connection props)
+        meta-con (meta/->metadata-connection partner-con)]
+    (->CloudshipClient (md/memoize-describe-client partner-con)
+                       partner-con
+                       (mmd/memoize-describe-client meta-con)
+                       meta-con)))
 
 (def cache (atom (cache/ttl-cache-factory {} :ttl 3.6e+6))) ;one hour
 

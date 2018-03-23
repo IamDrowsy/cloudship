@@ -55,7 +55,7 @@
   PartnerConnection
   (info [this]
     (let [config (.getConfig this)]
-      {:type    :sf-sdk
+      {:type    :sf-data-sdk
        :connection this
        :session (.getSessionId config)
        :endpoint (->base-url (.getServiceEndpoint config))
