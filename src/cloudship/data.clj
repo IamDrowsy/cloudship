@@ -175,4 +175,4 @@
 
 (defn info
   [client-description]
-  (c/info client-description))
+  (p/info client-description))

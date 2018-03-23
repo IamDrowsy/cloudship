@@ -57,18 +57,19 @@
      :kw (fn [& parts]
            (into {} parts))}
     (merge (try-parsing (name kw))
-           {:full kw})))
+           {:cache-name kw})))
 
 (s/fdef parse-keyword
         :args (s/cat :prop-kw ::prop-kw)
         :ret ::parsed-kw)
 
-(defn- find-and-merge-props [{:keys [org sandbox] :as kw-props}]
+(defn find-and-merge-props [{:keys [org sandbox] :as kw-props}]
   (let [all-props (l/slurp-and-merge-props)
         base-props (dissoc all-props :orgs)
         org-props (dissoc (get-in all-props [:orgs (keyword org)] {}) :sandboxes)
         sandbox-props (get-in all-props [:orgs (keyword org) :sandboxes sandbox] {})]
-    (l/deep-merge base-props kw-props org-props sandbox-props)))
+    ;not sure if the order mattered, put kw-props in the end to work with maps as input
+    (l/deep-merge base-props #_kw-props org-props sandbox-props kw-props)))
 
 (defn kw->props
   "Takes a keyword, parses it into a map and merges the configured props into it"

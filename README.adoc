@@ -4,7 +4,7 @@
 :exampledir: examples
 
 Cloudship is a Clojure toolkit to explore and manipulate your salesforce instances.
-It's designed to work from the repl against many different orgs and supports
+It's designed to work from the repl against different orgs at he same time and supports
 
 * Auth Data from different Sources
 ** Username + Password or Session in Configuration
@@ -25,11 +25,11 @@ It's designed to work from the repl against many different orgs and supports
 
 
 == Connection Creation
-Every function that talks to a Salesforce Org takes the connection
+Every function that talks to a Salesforce Org takes the `Cloudship`
 as first argument. This can be either:
 
-* an `CloudshipClient` Record
-* a Map of connection properties
+* a `CloudshipClient` Record
+* a map of connection properties
 * a keyword
 
 When working with many orgs from the repl we recommend to configure the usage
@@ -38,7 +38,7 @@ of keywords. The resulting connections will be cached and managed for you.
 If you don't care about the internals, you can jump to the <<Resolve Examples>>
 
 === From Keyword
-A keyword that describes a connection has the following syntax:
+A keyword that describes a `Cloudship` has the following syntax:
 ```
 :org-name[:sandbox-name][.flag|.flag:opt]*
 ```
@@ -52,14 +52,7 @@ Given a keyword as connection, cloudship will do the following:
 
 . check if there is a cached `CloudshipClient` Record for this keyword
 . if not, build a property map from the keyword by
-.. parsing the keyword into a initial prop map (with `:org-name` `:sandbox` `:flags` and `:full` (original kw) as keys)
-.. deep-merges all found `cloudship.edn` in `resource-folder`, `%user-home/.cloudship`,
-   `current folder` (in this order) to a big config map.
-.. deep-merges to a final prop map
-... all entries (except `:orgs`) of config map (b.)
-... the initial prop map (a.)
-... all entries in `[:orgs :org-name]` of config map
-... all entries in `[:orgs :org-name :sandboxes "sandbox-name"]` of config-map
+.. parsing the keyword into a initial prop map (with `:org-name` `:sandbox` `:flags` and `:cache-name` (original kw) as keys)
 .. continue with the <<From Property Map>>
 
 This process is a bit complex to provide a trade-off between ease and flexibility
@@ -72,7 +65,15 @@ Just follow the <<Tutorial>> and you will get the idea.
 
 Given a property map, cloudship will try to create an `CloudshipClient` Record by
 
-. add or coerce api-version (currently default is `41.0`)
+
+. deep-merges all found `cloudship.edn` in `resource-folder`, `%user-home/.cloudship`,
+   `current folder` (in this order) to a big config map.
+. deep-merges to a final prop map
+.. all entries (except `:orgs`) of config map (1.)
+.. all entries in `[:orgs :org-name]` of config map
+.. all entries in `[:orgs :org-name :sandboxes "sandbox-name"]` of config-map
+.. the initial prop map
+. add or coerce api-version (currently default is `42.0`)
 . build base-url from `:sandbox`, `:instance` and `:my-domain`
 ** providing nothing will result in `login.salesforce.com`
 ** only sandbox will result in `test.salesforce.com`
@@ -164,6 +165,14 @@ the keywords will result in the following property maps
      :url "https://login.salesforce.com",
      :username "my@username.de"}
 ----
+
+== Advanced Topics
+
+=== Missing API Methods
+* There a methods the SOAP/Metadata API provides that are not available in the cloudship API.
+If you need one of them you can directly call the methods you need against the
+`PartnerConnection`/`MetadataConnection` which are included in the `(info [])` call
+(path: `[$client-type :base :connection]`).
 
 == Known Issues
 

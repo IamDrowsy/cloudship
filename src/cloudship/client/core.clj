@@ -1,6 +1,7 @@
 (ns cloudship.client.core
   (:require [cloudship.client.data.protocol :as p :refer [DataDescribeClient DataClient BaseClient]]
             [cloudship.client.meta.protocol :as mp :refer [MetadataClient MetadataDescribeClient]]
+            [com.rpl.specter :refer :all]
             [cloudship.connection.props.core :as props]
             [cloudship.client.impl.mem.describe :as md]
             [cloudship.client.impl.mem.meta-describe :as mmd]
@@ -16,43 +17,31 @@
   nil
   (info [this] nil))
 
+(defn transform-first-arg [base-fn first-arg-transform]
+  (fn [first-arg & rest-args]
+    (apply (partial base-fn (first-arg-transform first-arg)) rest-args)))
+
+(defn function-map [protocol transform-fn]
+  (transform [ALL] (fn [[k v]] [(keyword (:name (meta k))) (transform-first-arg k transform-fn)])
+             (:method-builders protocol)))
+
+(defn extend-type-with-transform-fn [type protocol transform-fn]
+  (extend type protocol
+    (function-map protocol transform-fn)))
+
 (defrecord CloudshipClient [data-describe-client data-client metadata-describe-client metadata-client]
   BaseClient
-  (info [this] {:data-client (p/info (:data-client this))
-                :data-describe-client (p/info (:data-describe-client this))
-                :metadata-describe-client (p/info (:metadata-describe-client this))
-                :metadata-client (p/info (:metadata-client this))})
-  DataDescribeClient
-  (describe-global [this] (p/describe-global (:data-describe-client this)))
-  (describe-objects [this object-names] (p/describe-objects (:data-describe-client this) object-names))
-  DataClient
-  (query [this describe-client query options]
-    (p/query (:data-client this) describe-client query options))
-  (insert [this describe-client records options]
-    (p/insert (:data-client this) describe-client records options))
-  (update [this describe-client records options]
-    (p/update (:data-client this) describe-client records options))
-  (upsert [this describe-client records options]
-    (p/upsert (:data-client this) describe-client records options))
-  (delete [this describe-client ids options]
-    (p/delete (:data-client this) describe-client ids options))
-  (undelete [this describe-client ids options]
-    (p/undelete (:data-client this) describe-client ids options))
-  (remove-from-bin [this describe-client ids options]
-    (p/remove-from-bin (:data-client this) describe-client ids options))
-  MetadataDescribeClient
-  (describe [this]
-    (mp/describe (:metadata-describe-client this)))
-  (describe-type [this type]
-    (mp/describe-type (:metadata-describe-client this) type))
-  MetadataClient
-  (read [this meta-describe-client metadata-type metadata-names]
-    (mp/read (:metadata-client this) meta-describe-client metadata-type metadata-names))
-  (update [this meta-describe-client metadata]
-    (mp/update (:metadata-client this) meta-describe-client metadata)))
+  (info [this] (transform [MAP-VALS] p/info (into {} this))))
+
+(extend-type-with-transform-fn CloudshipClient DataDescribeClient :data-describe-client)
+(extend-type-with-transform-fn CloudshipClient DataClient :data-client)
+(extend-type-with-transform-fn CloudshipClient MetadataDescribeClient :metadata-describe-client)
+(extend-type-with-transform-fn CloudshipClient MetadataClient :metadata-client)
 
 (defn init-cloudship-client [props]
-  (t/infof "Initializing new connection for %s" (:full props))
+  (if (:cache-name props)
+    (t/infof "Initializing new connection for %s" (:cache-name props))
+    (t/info "Initializing new connection without :cache-name"))
   (t/info (str "Connection data is: \n" (with-out-str (pp/pprint (select-keys props [:proxy :username :url])))))
   (let [partner-con (init/->partner-connection props)]
     (->CloudshipClient (md/memoize-describe-client partner-con) partner-con
@@ -64,73 +53,23 @@
   (cond (instance? CloudshipClient resolveable)
         resolveable
         (or (keyword? resolveable) (map? resolveable))
-        (let [full-name (if (map? resolveable) (:full resolveable) resolveable)]
-          (if (has? @cache full-name)
-            (lookup (swap! cache hit full-name) full-name)
-            (lookup (swap! cache miss full-name (init-cloudship-client (props/->props resolveable))) full-name)))
+        (let [cache-name (if (map? resolveable) (:cache-name resolveable) resolveable)]
+          (if (and cache-name (has? @cache cache-name))
+            (lookup (swap! cache hit cache-name) cache-name)
+            (lookup (swap! cache miss cache-name (init-cloudship-client (props/->props resolveable))) cache-name)))
         :else (throw (ex-info (str resolveable " is not resolveable to a cloudship client")
                               {:resolvable resolveable}))))
 
 (defn evict-cloudship-client [resolveable]
-  (if-let [full-name (cond (map? resolveable) (:full resolveable)
+  (if-let [full-name (cond (map? resolveable) (:cache-name resolveable)
                            (keyword? resolveable) resolveable
                            :else nil)]
     (swap! cache evict full-name)
     (t/error (str "Cannot evict " resolveable " as it has no known full-name (:full)."))))
 
-(defn info [resolvable]
-  (p/info (resolve-cloudship-client resolvable)))
+(defn extend-cloudship-client [type ->cloudship-client]
+  (run! #(extend-type-with-transform-fn type % ->cloudship-client)
+        [BaseClient DataDescribeClient DataClient MetadataDescribeClient MetadataClient]))
 
-(extend-type Keyword
-  BaseClient
-  (info [keyword] (info keyword))
-  DataDescribeClient
-  (describe-global [keyword] (p/describe-global (resolve-cloudship-client keyword)))
-  (describe-objects [keyword object-names] (p/describe-objects (resolve-cloudship-client keyword) object-names))
-  DataClient
-  (query [keyword describe-client query-string options]
-    (p/query (resolve-cloudship-client keyword) describe-client query-string options))
-  (insert [keyword describe-client records options]
-    (p/insert (resolve-cloudship-client keyword) describe-client records options))
-  (update [keyword describe-client records options]
-    (p/update (resolve-cloudship-client keyword) describe-client records options))
-  (upsert [keyword describe-client records options]
-    (p/upsert (resolve-cloudship-client keyword) describe-client records options))
-  (delete [keyword describe-client ids options]
-    (p/delete (resolve-cloudship-client keyword) describe-client ids options))
-  (undelete [keyword describe-client ids options]
-    (p/undelete (resolve-cloudship-client keyword) describe-client ids options))
-  (remove-from-bin [keyword describe-client ids options]
-    (p/remove-from-bin (resolve-cloudship-client keyword) describe-client ids options))
-  MetadataDescribeClient
-  (describe [keyword]
-    (mp/describe (resolve-cloudship-client keyword)))
-  (describe-type [keyword type]
-    (mp/describe-type (resolve-cloudship-client keyword) type))
-  MetadataClient
-  (read [keyword meta-describe-client metadata-type metadata-names]
-    (mp/read (resolve-cloudship-client keyword) meta-describe-client metadata-type metadata-names))
-  (update [keyword meta-describe-client metadata]
-    (mp/update (resolve-cloudship-client keyword) meta-describe-client metadata)))
-
-(extend-type Map 
-  BaseClient
-  (info [props] (info props))
-  DataDescribeClient
-  (describe-global [props] (p/describe-global (resolve-cloudship-client props)))
-  (describe-objects [props object-names] (p/describe-objects (resolve-cloudship-client props) object-names))
-  DataClient
-  (query [props describe-client query-string options]
-    (p/query (resolve-cloudship-client props) describe-client query-string options))
-  (insert [props describe-client records options]
-    (p/insert (resolve-cloudship-client props) describe-client records options))
-  (update [props describe-client records options]
-    (p/update (resolve-cloudship-client props) describe-client records options))
-  (upsert [props describe-client records options]
-    (p/upsert (resolve-cloudship-client props) describe-client records options))
-  (delete [props describe-client ids options]
-    (p/delete (resolve-cloudship-client props) describe-client ids options))
-  (undelete [props describe-client ids options]
-    (p/undelete (resolve-cloudship-client props) describe-client ids options))
-  (remove-from-bin [props describe-client ids options]
-    (p/remove-from-bin (resolve-cloudship-client props) describe-client ids options)))
+(extend-cloudship-client Keyword resolve-cloudship-client)
+(extend-cloudship-client Map resolve-cloudship-client)
