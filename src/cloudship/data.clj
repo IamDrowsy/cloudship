@@ -14,35 +14,38 @@
             [clojure.spec.alpha :as s]))
 
 (defn describe
-  "Resolves client-description and calls describe-global with it."
-  [client-description]
-  (p/describe-global client-description))
+  "Returns the global describe data for the given cloudship."
+  [cloudship]
+  (p/describe-global cloudship))
 
 (defn describe-objects
-  "Resolves client-description and returns the describe data of the given objects"
-  [client-description & object-names]
-  (p/describe-objects client-description (misc/normalize-simple-var-args object-names)))
+  "Returns the describe data for the given cloudship and objects (as list or as varargs)."
+  [cloudship & object-names]
+  (p/describe-objects cloudship (misc/normalize-simple-var-args object-names)))
 
 (defn describe-object
-  "Resolves client-description and returns the describe data of a single object"
-  [client-description object-name]
-  (describe/describe-object client-description object-name))
+  "Returns the describe data for the given cloudship and a single given object."
+  [cloudship object-name]
+  (describe/describe-object cloudship object-name))
 
 (defn describe-id
-  "Object name of an id"
-  [client-description id]
-  (describe/describe-id client-description id))
+  "Returns the Objectnames for the given cloudship and salesforce id(-prefix).
+  Only checks the first 3 letters of a given id as they determine the object type.
+  As there are edge cases where more than one object with a given prefix, a list is returned.
+  If now Object is found, returns nil and logs a warning."
+  [cloudship id]
+  (describe/describe-id cloudship id))
 
 (defn- resolved-api-call [client-description api-call & other-args]
   (apply (partial api-call client-description client-description) other-args))
 
 (defn query
-  "Resolves the client and returns the result of this SOQL query-string.
+  "Returns the result of this SOQL query-string for the given cloudship.
   Have a look at 'q' for a more structured way to query."
-  ([client-description query-string]
-   (query client-description query-string {}))
-  ([client-description query-string options]
-   (resolved-api-call client-description p/query query-string options)))
+  ([cloudship query-string]
+   (query cloudship query-string {}))
+  ([cloudship query-string options]
+   (resolved-api-call cloudship p/query query-string options)))
 (s/fdef query
         :ret (s/coll-of ::cs/sObject))
 
@@ -64,17 +67,17 @@
 (defn q
   "Structured version of the query function.
    Is not limited to 2000 records (uses QueryLocator if needed).
-   Also understands '*' or ':all' (all fields), ':required' (required fields) as field.
+   Also understands '*' or ':all' (all fields), ':required' (required fields) as field-or-fields.
    Given a function for field-or-fields, it will run it as predicate on the field metadata.
    This especially works for keywords like ':updateable' or ':createable'.
    Always queries Id.
    Options are {:where  WhereString, :in [infield idset] :all true (query-all)
                 :limit limitnumber :bulk true}
-   If the idset of in is too big and results in a too long query, it will automaticly split the query and concat the results again."
-  ([client-description object field-or-fields]
-   (q client-description object field-or-fields {}))
-  ([client-description object field-or-fields {:keys [in all] :as options}]
-   (let [client (c/resolve-cloudship-client client-description)
+   If the idset of :in is too big and results in a too long query, it will automaticly split the query and concat the results again."
+  ([cloudship object field-or-fields]
+   (q cloudship object field-or-fields {}))
+  ([cloudship object field-or-fields {:keys [in all] :as options}]
+   (let [client (c/resolve-cloudship-client cloudship)
          field-list (query/determine-field-list client field-or-fields object)
          query-string (query/build-query-string object field-list options)]
      (cond (query-opt-error? options) []
@@ -91,12 +94,12 @@
   "Insert for given maps.
   All records must have a valid :type.
   Possible options are: {:partition-size size, :bulk true, :serial true}."
- ([client-description records]
-  (insert client-description records {}))
- ([client-description records options]
+ ([cloudship records]
+  (insert cloudship records {}))
+ ([cloudship records options]
   (if (empty? records)
     (do (t/info "Nothing to insert.") [])
-    (resolved-crud-call client-description p/insert records options))))
+    (resolved-crud-call cloudship p/insert records options))))
 (s/fdef insert
         :ret (s/coll-of ::cs/result))
 
@@ -104,24 +107,24 @@
   "Update for given maps.
   All records must have :Id and a valid :type.
   Possible options are: {:partition-size size, :bulk true, :serial true}."
-  ([client-description records]
-   (update client-description records {}))
-  ([client-description records options]
+  ([cloudship records]
+   (update cloudship records {}))
+  ([cloudship records options]
    (if (empty? records)
      (do (t/info "Nothing to update.") [])
-     (resolved-crud-call client-description p/update records options))))
+     (resolved-crud-call cloudship p/update records options))))
 (s/fdef update
         :ret (s/coll-of ::cs/result))
 
 (defn upsert
   "Upsert for given maps.
   All records must have :Id and a valid :type.
-  The :upsert-key option needs to be set, there upsert has no arity without options.
+  The :upsert-key option needs to be set, therefor upsert has no arity without options.
   Possible options are: {:partition-size size, :bulk true, :serial true}."
-  [client-description records options]
+  [cloudship records options]
   (if (empty? records)
     (do (t/info "Nothing to upsert") [])
-    (resolved-crud-call client-description p/upsert records options)))
+    (resolved-crud-call cloudship p/upsert records options)))
 (s/fdef upsert
         :ret (s/coll-of ::cs/result))
 
@@ -131,19 +134,21 @@
     (:Id id-or-map)))
 
 (defn delete
-  "Deletes the given maps (with ids) or ids"
-  ([client-description records-or-ids]
-   (delete client-description records-or-ids {}))
-  ([client-description records-or-ids options]
+  "Deletes the given maps (with ids) or ids.
+  If option :dont-ask is not set, asks before deleting records.
+  Other option are: {:partition-size size, :bulk true, :serial true}"
+  ([cloudship records-or-ids]
+   (delete cloudship records-or-ids {}))
+  ([cloudship records-or-ids options]
    (if (empty? records-or-ids)
      (do (t/info "Nothing to delete.") [])
      (let [ids (map ->id records-or-ids)]
        (if (or (:dont-ask options)
                (interact/ask-to-continue!
                  (str "You're about to delete " (count ids) " records "
-                        " of Object '" (first (describe-id client-description (first ids)))
-                        "' on Connection " client-description)))
-         (resolved-crud-call client-description p/delete ids options)
+                        " of Object '" (first (describe-id cloudship (first ids)))
+                        "' on Connection " cloudship)))
+         (resolved-crud-call cloudship p/delete ids options)
          (do (t/info "Aborted by user.") []))))))
 (s/fdef delete
         :ret (s/coll-of ::cs/result))
@@ -170,9 +175,11 @@
 
 (defn evict
   "Removes the connection for this keyword/prop-map from the cache"
-  [client-description]
-  (c/evict-cloudship-client client-description))
+  [cloudship]
+  (c/evict-cloudship-client cloudship))
 
 (defn info
-  [client-description]
-  (p/info client-description))
+  "Returns information for this client.
+   Usally contains username, session, url and the underlying client."
+  [cloudship]
+  (p/info cloudship))
