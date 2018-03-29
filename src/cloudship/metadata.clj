@@ -1,6 +1,7 @@
 (ns cloudship.metadata
   (:refer-clojure :exclude [read update])
   (:require [cloudship.client.meta.protocol :as p]
+            [cloudship.client.data.protocol :as dp]
             [cloudship.client.core :as c]
             [cloudship.util.misc :as misc]))
 
@@ -23,4 +24,4 @@
 
 (defn info
   [client-description]
-  (c/info client-description))
+  (dp/info client-description))

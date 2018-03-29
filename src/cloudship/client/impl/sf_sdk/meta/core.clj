@@ -36,7 +36,7 @@
 
 
 (defn- describe [metadata-con]
-  (jd/from-java (.describeMetadata metadata-con (->api-version metadata-con))))
+  (jd/from-java (.describeMetadata metadata-con (->api-version (.getServiceEndpoint (.getConfig metadata-con))))))
 
 (defn- describe-type [metadata-con type]
   (jd/from-java (.describeValueType metadata-con (add-default-namespace-if-missing type))))
@@ -55,9 +55,9 @@
 (extend-protocol MetadataDescribeClient
   MetadataConnection
   (describe [this]
-    (describe (->metadata-connection this)))
+    (describe this))
   (describe-type [this type]
-    (describe-type (->metadata-connection this) type)))
+    (describe-type this type)))
 
 (defn- read-metadata-parted [meta-con meta-describe-client meta-type names]
    (jd/from-java (.getRecords (.readMetadata meta-con meta-type (into-array String names)))))
@@ -74,6 +74,6 @@
 (extend-protocol MetadataClient
   MetadataConnection
   (read [this meta-describe-client meta-type names]
-    (read-metadata (->metadata-connection this) meta-describe-client meta-type names))
+    (read-metadata this meta-describe-client meta-type names))
   (update [this meta-describe-client metadata]
-    (update-metadata (->metadata-connection this) meta-describe-client metadata)))
+    (update-metadata this meta-describe-client metadata)))
