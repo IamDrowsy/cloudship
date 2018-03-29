@@ -1,6 +1,9 @@
 (ns cloudship.util.keepass
   (:require [cloudship.util.user-interact :as uio]
-            [taoensso.timbre :refer [debug debugf log-and-rethrow-errors warnf]])
+            [taoensso.timbre :refer [debug debugf log-and-rethrow-errors warnf]]
+            [clojure.java.data :as jd]
+            [clj-time.coerce :as tc]
+            [clojure.set :as set])
   (:import [de.slackspace.openkeepass KeePassDatabase]
            [de.slackspace.openkeepass.domain Group KeePassFile Entry]))
 
@@ -44,31 +47,49 @@
           (throw (ex-info (format "Cannot find group %s" name)
                           {:name name :file this}))))))
 
-(defn- ^Entry entry* [database path-to-entry password]
-  (let [db (resolve-database database password)]
-    (loop [g db
-           [f & r] path-to-entry]
-      (if (empty? r)
-        (.getEntryByTitle g f)
-        (recur (subgroup g f) r)))))
+(defn- entry* [database path-to-entry password]
+  (let [db (resolve-database (str database) password)]
+       (loop [g db
+              [f & r] path-to-entry]
+         (if (empty? r)
+           (.getEntryByTitle g f)
+           (recur (subgroup g f) r)))))
+
+(defn- coerced-entry [database path-to-entry password]
+  (if-let [e (entry* database path-to-entry password)]
+    (jd/from-java e)
+    (throw (ex-info (format "Cannot find entry %s in database %s" path-to-entry database)
+             {:database database :path-to-entry path-to-entry}))))
+
+(defn- extract-properties [entry-map]
+  (set/rename-keys
+    (into {}
+          (map (fn [m] [(keyword (:key m)) (:value m)])
+               (:properties entry-map)))
+    ;for compability with other props we rename the default entries
+    {:Password :password
+     :UserName :username
+     :Notes :notes
+     :URL :url
+     :Title :title}))
 
 (defn entry
   "Returns a map of the given keepass entry."
   ([database path-to-entry]
    (entry database path-to-entry nil))
   ([database path-to-entry password]
-   (let [e (entry* database path-to-entry password)]
-     (if e
-       (select-keys (bean e) [:username :password :url :notes :name :uuid])
-       (throw (ex-info (format "Cannot find entry %s in database %s" path-to-entry database)
-                       {:database database :path-to-entry path-to-entry}))))))
+   (extract-properties (coerced-entry database path-to-entry password))))
+
+(defn- extract-historic-entry [historic-entry]
+  (assoc (extract-properties historic-entry)
+    :version (tc/from-long (get-in historic-entry [:times :lastAccessTime :timeInMillis]))))
 
 (defn entry-history
   "Returns the list of entries in ascending order (starting with earliest)"
   ([database path-to-entry]
    (entry-history database path-to-entry nil))
   ([database path-to-entry password]
-   (let [e (entry* database path-to-entry password)
-         history (if e (.getHistoricEntries (.getHistory e)) [])]
-     (map #(select-keys (bean %) [:username :password :url :notes :name :uuid])
-          history))))
+   (map extract-historic-entry
+        (get-in
+          (coerced-entry database path-to-entry password)
+          [:history :historicEntries]))))
