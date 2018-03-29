@@ -6,6 +6,7 @@
 (s/def ::full keyword?)
 (s/def ::url string?)
 (s/def ::username string?)
+(s/def ::security-token string?)
 (s/def ::password string?)
 (s/def ::session string?)
 (s/def ::my-domain string?)
@@ -25,5 +26,5 @@
   (or session (and username password)))
 
 (s/def ::final-props (s/and (s/keys :req-un [::url ::api-version]
-                                    :opt-un [::username ::password ::session ::proxy ::my-domain ::instance])
+                                    :opt-un [::username ::security-token ::password ::session ::proxy ::my-domain ::instance])
                             login-data-or-session?))

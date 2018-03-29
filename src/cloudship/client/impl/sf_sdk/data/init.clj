@@ -35,9 +35,9 @@
 (defn- ->soap-url [api-version base-url]
   (add-soap-service-part-if-missing api-version base-url))
 
-(defn- ^ConnectorConfig prepare-config [{:keys [username password url api-version proxy session]}]
+(defn- ^ConnectorConfig prepare-config [{:keys [username security-token password url api-version proxy session]}]
   (doto (ConnectorConfig.)
-    (set-userinfo-or-session username password session)
+    (set-userinfo-or-session (str username security-token) password session)
     (.setServiceEndpoint (->soap-url api-version url))
     (.setAuthEndpoint (->soap-url api-version url))
     (set-proxy proxy)))
