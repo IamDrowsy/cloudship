@@ -27,7 +27,7 @@
     (MetadataConnection. meta-config)))
 
 (defn- ->api-version [url]
-  (Double/parseDouble (last (butlast (str/split url #"/")))))
+  (Double/parseDouble (last (str/split url #"/"))))
 
 (defn- add-default-namespace-if-missing [type]
   (if (str/starts-with? type "{")
@@ -49,8 +49,7 @@
        :connection this
        :session (.getSessionId config)
        :endpoint (->meta-url (.getServiceEndpoint config))
-       :api-version (->api-version (.getServiceEndpoint config))
-       :username (.getUsername config)})))
+       :api-version (->api-version (.getServiceEndpoint config))})))
 
 (extend-protocol MetadataDescribeClient
   MetadataConnection

@@ -1,5 +1,6 @@
 (ns cloudship.client.core
-  (:require [cloudship.client.data.protocol :as p :refer [DataDescribeClient DataClient BaseClient]]
+  (:require [cloudship.auth.core :as auth]
+            [cloudship.client.data.protocol :as p :refer [DataDescribeClient DataClient BaseClient]]
             [cloudship.client.meta.protocol :as mp :refer [MetadataClient MetadataDescribeClient]]
             [com.rpl.specter :refer :all]
             [cloudship.connection.props.core :as props]
@@ -38,12 +39,13 @@
 (extend-type-with-transform-fn CloudshipClient MetadataDescribeClient :metadata-describe-client)
 (extend-type-with-transform-fn CloudshipClient MetadataClient :metadata-client)
 
-(defn init-cloudship-client [props]
-  (if (:cache-name props)
-    (t/infof "Initializing new connection for %s" (:cache-name props))
+(defn init-cloudship-client [config]
+  (if (:cache-name config)
+    (t/infof "Initializing new connection for %s" (:cache-name config))
     (t/info "Initializing new connection without :cache-name"))
-  (t/info (str "Connection data is: \n" (with-out-str (pp/pprint (select-keys props [:proxy :username :url])))))
-  (let [partner-con (data/->partner-connection props)
+  (t/info (str "Connection data is: \n" (with-out-str (pp/pprint (select-keys config [:proxy :username :url])))))
+  (let [authed-config (auth/auth config)
+        partner-con (data/->partner-connection authed-config)
         meta-con (meta/->metadata-connection partner-con)]
     (->CloudshipClient (md/memoize-describe-client partner-con)
                        partner-con

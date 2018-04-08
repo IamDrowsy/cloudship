@@ -3,7 +3,7 @@
   (:require [instaparse.core :as insta]
             [clojure.spec.alpha :as s]
             [cloudship.connection.props.load :as l]
-            [cloudship.connection.props.spec :as prop-spec]
+            [cloudship.spec.config :as config-spec]
             [cloudship.util.spec :as u]
             [instaparse.failure :as fail]))
 
@@ -30,8 +30,8 @@
                     :string ::flag-map))
 (s/def ::flags (s/* ::flag))
 
-(s/def ::parsed-kw (s/keys :req-un [::prop-spec/org ::prop-spec/full]
-                           :opt-un [::prop-spec/sandbox ::flags]))
+(s/def ::parsed-kw (s/keys :req-un [::config-spec/org ::config-spec/cache-name]
+                           :opt-un [::config-spec/sandbox ::flags]))
 
 (s/def ::prop-kw (s/and keyword? parses?))
 

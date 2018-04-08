@@ -14,20 +14,21 @@
            (com.sforce.ws ConnectorConfig)))
 
 (defn- ->async-url [server-url]
-  (str/join "/" (drop-last
-                  (clojure.string/split
-                    (clojure.string/replace server-url "Soap/u" "async")
-                    #"/"))))
+  (str/join "/" (clojure.string/split
+                  (clojure.string/replace server-url "Soap/u" "async")
+                  #"/")))
 
 (defn- ^BulkConnection ->bulk-connection [^PartnerConnection pc]
   (let [pc-config (.getConfig pc)
         session (.getSessionId pc-config)
         endpoint (.getServiceEndpoint pc-config)
         bulk-config (ConnectorConfig.)
-        proxy (.getProxy pc-config)]
+        proxy (.getProxy pc-config)
+        async-url (->async-url endpoint)]
+    (println async-url)
     (doto bulk-config
       (.setSessionId session)
-      (.setRestEndpoint (->async-url endpoint))
+      (.setRestEndpoint async-url)
       (.setCompression true)
       (.setTraceMessage false)
       (.setProxy proxy))

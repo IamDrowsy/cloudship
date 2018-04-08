@@ -60,7 +60,7 @@
        :session (.getSessionId config)
        :endpoint (->base-url (.getServiceEndpoint config))
        :api-version (->api-version (.getServiceEndpoint config))
-       :username (.getUsername config)})))
+       :username (.getUserName (.getUserInfo this))})))
 
 (extend-protocol DataDescribeClient
   PartnerConnection
