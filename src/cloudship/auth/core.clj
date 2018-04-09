@@ -1,6 +1,7 @@
 (ns cloudship.auth.core
   (:require [cloudship.auth.method :as am]
-            [cloudship.auth.soap :as as]
+            [cloudship.auth.soap]
+            [cloudship.auth.sfdx]
             [cloudship.spec.config :as sc]
             [clojure.spec.alpha :as s]))
 

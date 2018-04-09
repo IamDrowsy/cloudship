@@ -3,6 +3,7 @@
             [cloudship.connection.props.flags.version :as v]
             [clojure.spec.alpha :as s]
             [cloudship.connection.props.spec :as prop-spec]
+            [cloudship.spec.config :as config-spec]
             [cloudship.util.spec :as u]
             [cloudship.connection.props.flags :as flags]
             [clojure.string :as str]))
@@ -64,7 +65,7 @@
 (defn ->props [kw-or-map]
   (let [props (cond (keyword? kw-or-map) #_=> (kw/kw->props kw-or-map)
                     (map? kw-or-map)     #_=> (kw/find-and-merge-props kw-or-map))]
-    (u/assert-input ::prop-spec/final-props
+    (u/assert-input ::config-spec/preauth-config
                     (-> props
                         +api-version
                         +url

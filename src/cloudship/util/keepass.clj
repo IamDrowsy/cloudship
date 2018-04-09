@@ -2,7 +2,10 @@
   (:require [cloudship.util.user-interact :as uio]
             [taoensso.timbre :refer [debug debugf log-and-rethrow-errors warnf]]
             [clojure.java.data :as jd]
-            [clj-time.coerce :as tc]
+            [java-time.core :as jtc]
+            [java-time.zone :as jtz]
+            [java-time.local :as jtl]
+            [java-time.temporal :as jtt]
             [clojure.set :as set])
   (:import [de.slackspace.openkeepass KeePassDatabase]
            [de.slackspace.openkeepass.domain Group KeePassFile Entry]))
@@ -82,7 +85,7 @@
 
 (defn- extract-historic-entry [historic-entry]
   (assoc (extract-properties historic-entry)
-    :version (tc/from-long (get-in historic-entry [:times :lastAccessTime :timeInMillis]))))
+    :version (jtt/instant (get-in historic-entry [:times :lastAccessTime :timeInMillis]))))
 
 (defn entry-history
   "Returns the list of entries in ascending order (starting with earliest)"
