@@ -1,7 +1,7 @@
 (ns cloudship.connection.props.flags.ciphercloud
   (:require [clojure.string :as str]
             [clojure.spec.alpha :as s]
-            [cloudship.connection.props.spec :as prop-spec]
+            [cloudship.spec.config :as cs]
             [cloudship.util.spec :as u]))
 
 (s/def ::cc-alias string?)
@@ -10,8 +10,8 @@
 (defn- sandbox-or-cc-alias? [{:keys [sandbox cc-alias]}]
   (or sandbox cc-alias))
 
-(s/def ::prop-before-cc (s/and (s/keys :req-un [::cc-domain ::prop-spec/url]
-                                       :opt-un [::cc-alias ::prop-spec/sandbox])
+(s/def ::prop-before-cc (s/and (s/keys :req-un [::cc-domain ::cs/url]
+                                       :opt-un [::cc-alias ::cs/sandbox])
                                sandbox-or-cc-alias?))
 
 (defn- change-to-cc-url

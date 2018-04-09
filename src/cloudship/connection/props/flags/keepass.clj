@@ -1,4 +1,4 @@
-(ns cloudship.connection.props.flags.keepass
+(ns cloudship.connection.configs.flags.keepass
   (:require [cloudship.util.keepass :as kp]
             [clojure.spec.alpha :as s]
             [cloudship.util.spec :as u]
@@ -8,18 +8,18 @@
 (s/def ::kppath (s/coll-of string? :min-count 1))
 (s/def ::kppass string?)
 
-(s/def ::prop-before-kp (s/keys :req-un [::kpdb ::kppath]
+(s/def ::config-before-kp (s/keys :req-un [::kpdb ::kppath]
                                 :opt-un [::kppass]))
 
-(defn- expand-keypass-login-data [{:keys [kpdb kppath kppass full] :as con-props}]
-  (if (u/input-valid? ::prop-before-kp con-props)
+(defn- expand-keypass-login-data [{:keys [kpdb kppath kppass full] :as config}]
+  (if (u/input-valid? ::config-before-kp config)
     (do
       (infof "Expanding login-data for %s from keepass" full)
       (merge
-        con-props
+        config
         (select-keys (kp/entry kpdb kppath kppass) [:username :password])))
     (do (info "Input not valid for keepass flag. Skipping it.")
-        con-props)))
+        config)))
 
 (defn resolve-kp-flag []
   expand-keypass-login-data)

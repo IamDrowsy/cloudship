@@ -2,7 +2,6 @@
   (:require [cloudship.connection.props.keyword :as kw]
             [cloudship.connection.props.flags.version :as v]
             [clojure.spec.alpha :as s]
-            [cloudship.connection.props.spec :as prop-spec]
             [cloudship.spec.config :as config-spec]
             [cloudship.util.spec :as u]
             [cloudship.connection.props.flags :as flags]
@@ -21,8 +20,8 @@
     true))
 
 (s/def ::props-before-url (s/and
-                            (s/keys :opt-un [::prop-spec/sandbox ::prop-spec/my-domain
-                                             ::prop-spec/url ::prop-spec/instance])
+                            (s/keys :opt-un [::config-spec/sandbox ::config-spec/my-domain
+                                             ::config-spec/url ::config-spec/instance])
                             instance-when-my-domain-and-sandbox))
 
 (defn- base-url [my-domain sandbox instance]

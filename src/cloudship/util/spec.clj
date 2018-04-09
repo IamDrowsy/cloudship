@@ -1,10 +1,10 @@
 (ns cloudship.util.spec
   (:require [clojure.spec.alpha :as s]
-            [cloudship.connection.props.spec :as cs]
+            [cloudship.spec.config :as sc]
             [expound.alpha :refer [expound-str]]
             [taoensso.timbre :as timbre]))
 
-(def secret-keys [::cs/password ::cs/kppass :password :kppass])
+(def secret-keys [::sc/password ::sc/kppass :password :kppass])
 
 (defn obscure-key [m key]
   (if (key m)

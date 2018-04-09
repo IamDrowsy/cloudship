@@ -1,10 +1,10 @@
 (ns cloudship.connection.props.flags.version
   (:require [clojure.string :as str]
             [cloudship.util.spec :as u]
-            [cloudship.connection.props.spec :as prop-spec]))
+            [cloudship.spec.config :as sc]))
 
 (defn coerce-api-version [api-version]
-  (u/assert-input ::prop-spec/raw-api-version api-version)
+  (u/assert-input ::sc/raw-api-version api-version)
   (cond (int? api-version)
         (str api-version ".0")
         (float? api-version)

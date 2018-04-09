@@ -1,7 +1,7 @@
 (ns cloudship.connection.props.flags.sfdx
   (:require [clojure.spec.alpha :as s]
             [cloudship.util.sfdx :as sfdx]
-            [cloudship.connection.props.spec :as cs]))
+            [cloudship.spec.config :as cs]))
 
 
 (s/def ::prop-before-sfdx (s/keys :req-un [::cs/org] :opt-un [::cs/username]))
