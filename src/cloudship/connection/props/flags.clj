@@ -1,8 +1,7 @@
 (ns cloudship.connection.props.flags
   (:require [cloudship.connection.props.flags.ciphercloud :as cc]
             [cloudship.connection.props.flags.version :as v]
-            [cloudship.connection.props.flags.keepass :as kp]
-            [cloudship.connection.props.flags.sfdx :as sfdx]))
+            [cloudship.connection.props.flags.keepass :as kp]))
 
 (defmulti resolve-flag (fn [flag]
                          (if (map? flag)
@@ -41,4 +40,16 @@
 
 (defmethod resolve-flag
   "sfdx"
-  [this] (sfdx/resolve-sfdx-flag))
+  [this] (resolve-flag {:flag-name "auth-method" :opt "sfdx"}))
+
+(defmethod resolve-flag
+  "auth"
+  [this] (resolve-flag {:flag-name "auth-method" :opt (:opt this)}))
+
+(defmethod resolve-flag
+  :default
+  [this] (fn [config]
+           (let [flag (keyword (:flag-name this))]
+             (if (map? this)
+               (assoc config flag (:opt this))
+               (assoc config flag true)))))

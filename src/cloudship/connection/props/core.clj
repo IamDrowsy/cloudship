@@ -7,7 +7,7 @@
             [cloudship.connection.props.flags :as flags]
             [clojure.string :as str]))
 
-(def default-api-version "41.0")
+(def default-api-version "42.0")
 
 (defn- +api-version [props]
   (if (:api-version props)

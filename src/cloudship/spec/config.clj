@@ -23,7 +23,7 @@
 (s/def ::api-version (s/and string? #(re-matches #"[\d]+(\.\d)" %)))
 
 
-(s/def ::auth-method #{:sfdx :oauth :soap})
+(s/def ::auth-method #{:sfdx "sfdx" :oauth "oauth" :soap "soap"})
 (s/def ::preauth-config (s/and (s/keys :req-un [::auth-method]
                                        :opt-un [::proxy])))
 

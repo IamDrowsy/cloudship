@@ -3,4 +3,4 @@
 
 (defmulti auth
   "Takes a config and returns a authed config"
-  :auth-method)
+  (comp keyword :auth-method))
