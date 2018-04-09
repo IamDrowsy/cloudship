@@ -1,4 +1,5 @@
 {:api-version "40.0"
+ :auth-method "soap"
  :orgs {:org1 {:username "my@username.de"
                :password "very-secret1!"
                :sandboxes {"new" {:api-version "41.0"}}}

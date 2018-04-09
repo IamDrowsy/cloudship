@@ -11,10 +11,10 @@
 (s/def ::config-before-kp (s/keys :req-un [::kpdb ::kppath]
                                 :opt-un [::kppass]))
 
-(defn- expand-keypass-login-data [{:keys [kpdb kppath kppass full] :as config}]
+(defn- expand-keypass-login-data [{:keys [kpdb kppath kppass cache-name] :as config}]
   (if (u/input-valid? ::config-before-kp config)
     (do
-      (infof "Expanding login-data for %s from keepass" full)
+      (infof "Expanding login-data for %s from keepass" cache-name)
       (merge
         config
         (select-keys (kp/entry kpdb kppath kppass) [:username :password])))
