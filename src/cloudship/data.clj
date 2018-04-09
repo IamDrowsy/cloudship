@@ -5,7 +5,7 @@
             [cloudship.client.core :as c]
             [cloudship.client.data.describe :as describe]
             [cloudship.client.data.query :as query]
-            [cloudship.spec :as cs]
+            [cloudship.spec.data :as data]
             [cloudship.util.result :as result]
             [cloudship.util.misc :as misc]
             [taoensso.timbre :as t]
@@ -47,7 +47,7 @@
   ([cloudship query-string options]
    (resolved-api-call cloudship p/query query-string options)))
 (s/fdef query
-        :ret (s/coll-of ::cs/sObject))
+        :ret (s/coll-of ::data/sObject))
 
 (defn- query-opt-error? [{:keys [in]}]
   (cond (and in (empty? (second in))) (do (t/error "In collection is empty.") true)
@@ -101,7 +101,7 @@
     (do (t/info "Nothing to insert.") [])
     (resolved-crud-call cloudship p/insert records options))))
 (s/fdef insert
-        :ret (s/coll-of ::cs/result))
+        :ret (s/coll-of ::data/result))
 
 (defn update
   "Update for given maps.
@@ -114,7 +114,7 @@
      (do (t/info "Nothing to update.") [])
      (resolved-crud-call cloudship p/update records options))))
 (s/fdef update
-        :ret (s/coll-of ::cs/result))
+        :ret (s/coll-of ::data/result))
 
 (defn upsert
   "Upsert for given maps.
@@ -126,7 +126,7 @@
     (do (t/info "Nothing to upsert") [])
     (resolved-crud-call cloudship p/upsert records options)))
 (s/fdef upsert
-        :ret (s/coll-of ::cs/result))
+        :ret (s/coll-of ::data/result))
 
 (defn ->id [id-or-map]
   (if (string? id-or-map)
@@ -151,7 +151,7 @@
          (resolved-crud-call cloudship p/delete ids options)
          (do (t/info "Aborted by user.") []))))))
 (s/fdef delete
-        :ret (s/coll-of ::cs/result))
+        :ret (s/coll-of ::data/result))
 
 (defn undelete
   "Undeletes the given maps (with ids) or ids"

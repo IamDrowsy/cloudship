@@ -1,7 +1,7 @@
 (ns cloudship.util.result
   (:require [taoensso.timbre :as t]
             [clojure.spec.alpha :as s]
-            [cloudship.spec :as cs]))
+            [cloudship.spec.data :as data]))
 
 
 (defn- aggregate-results
@@ -23,7 +23,7 @@
           {}
           errors))
 (s/fdef error-count-map
-        :args (s/cat :errors (s/coll-of ::cs/error))
+        :args (s/cat :errors (s/coll-of ::data/error))
         :ret (s/map-of string? int?))
 
 (defn report-results!
@@ -36,5 +36,5 @@
           (t/info (error-count-map (:errors examined))))))
   results)
 (s/fdef report-results!
-        :args (s/cat :results (s/coll-of ::cs/result))
-        :ret ::cs/result)
+        :args (s/cat :results (s/coll-of ::data/result))
+        :ret ::data/result)
