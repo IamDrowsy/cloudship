@@ -76,13 +76,13 @@
           (do (t/warn error " is not a known error type")
               {}))))
 
-(defn- soap-action* [client action type inputs {:keys [partition-size] :or {partition-size 200}}]
+(defn- soap-action* [client action type inputs {:keys [batch-size] :or {batch-size 200}}]
   (map result-to-map
        (apply concat
               (doall
                 (map
                   (comp (partial action client) #(into-array type %))
-                  (partition-all partition-size inputs))))))
+                  (partition-all batch-size inputs))))))
 
 (defn- insert*
   "Internal. Like insert but takes sobjects"
@@ -91,7 +91,7 @@
 
 (defn insert
   "Insert for given sobjects as maps.
- Possible options are: {:partition-size size, :bulk true, :serial true}."
+ Possible options are: {:batch-size size, :bulk true, :serial true}."
   [client data-describe-client records {:keys [bulk] :as options}]
   (if bulk
     (bulk/insert client data-describe-client records options)
@@ -104,7 +104,7 @@
 
 (defn update
   "Soap update for given maps.
-Possible options are: {:partition-size size, :bulk true, :serial true}."
+Possible options are: {:batch-size size, :bulk true, :serial true}."
   [client data-describe-client records {:keys [bulk] :as options}]
   (if bulk
     (bulk/update client data-describe-client records options)
@@ -118,7 +118,7 @@ Possible options are: {:partition-size size, :bulk true, :serial true}."
 (defn upsert
   "Soap upsert for given idkey and records.
   You need to provide :upsert-key as option.
-  Other options are: {:partition-size size, :bulk true, :serial true}."
+  Other options are: {:batch-size size, :bulk true, :serial true}."
   [client data-describe-client records {:keys [bulk upsert-key] :as options}]
   (if bulk
     (bulk/upsert client data-describe-client upsert-key records options)
@@ -127,7 +127,7 @@ Possible options are: {:partition-size size, :bulk true, :serial true}."
 (defn delete
   "Deletes records with the given ids or maps (with :Id key).
 Asks for your permission to delete stuff if ':dont-ask true' is not set as option.
-Other options are: {:partition-size size, :bulk true, :hard true, :serial true}."
+Other options are: {:batch-size size, :bulk true, :hard true, :serial true}."
   [client data-describe-client ids {:keys [bulk hard] :as options}]
   (cond bulk (bulk/delete client data-describe-client ids options)
         hard (throw (IllegalArgumentException. "Cannot hard delete via SOAP API"))
@@ -135,7 +135,7 @@ Other options are: {:partition-size size, :bulk true, :hard true, :serial true}.
 
 (defn undelete
   "Undeletes records with the given ids.
-Possible options are: {:partition-size size, parallel? true}.
+Possible options are: {:batch-size size, parallel? true}.
 Parallel will just use 10 soap cons so be aware of row locks."
   ([client ids]
    (undelete client ids {}))
