@@ -1,5 +1,5 @@
 (ns cloudship.metadata
-  (:refer-clojure :exclude [read update])
+  (:refer-clojure :exclude [read update list])
   (:require [cloudship.client.meta.protocol :as p]
             [cloudship.client.data.protocol :as dp]
             [cloudship.client.core :as c]
@@ -10,6 +10,9 @@
 
 (defn describe-type [cloudship type]
   (p/describe-type cloudship type))
+
+(defn list [cloudship metadata-type]
+  (p/list cloudship cloudship metadata-type))
 
 (defn read [cloudship metadata-type & metadata-names]
   (p/read cloudship cloudship metadata-type (misc/normalize-simple-var-args metadata-names)))

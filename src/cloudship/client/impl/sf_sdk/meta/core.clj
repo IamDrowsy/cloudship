@@ -1,10 +1,11 @@
 (ns cloudship.client.impl.sf-sdk.meta.core
   (:require [clojure.string :as str]
-            [cloudship.client.data.protocol :refer [BaseClient]]
-            [cloudship.client.meta.protocol :refer [MetadataClient MetadataDescribeClient]]
+            [cloudship.client.data.protocol :as base :refer [BaseClient]]
+            [cloudship.client.meta.protocol :as p :refer [MetadataClient MetadataDescribeClient]]
+            [cloudship.client.impl.sf-sdk.meta.convert :as convert]
             [cloudship.util.java-data-extension]
             [clojure.java.data :as jd])
-  (:import (com.sforce.soap.metadata MetadataConnection Metadata)
+  (:import (com.sforce.soap.metadata MetadataConnection Metadata ListMetadataQuery)
            (com.sforce.soap.partner PartnerConnection)
            (com.sforce.ws ConnectorConfig)))
 
@@ -58,20 +59,52 @@
   (describe-type [this type]
     (describe-type this type)))
 
+(defn- list-meta-query [type folder]
+  (let [q (ListMetadataQuery.)]
+    (.setType q type)
+    (if folder
+      (.setFolder q folder))
+    q))
+
+(defn- api-version-from-con [^MetadataConnection meta-con]
+  (Double/valueOf (:api-version (base/info meta-con))))
+
+(defn- list-metas*
+  "Internal List all metadata of a given types. Does not work with foldered types. Use list-meta(s)-in for this"
+  [meta-con types]
+  (.listMetadata meta-con
+                 (into-array ListMetadataQuery
+                             (map list-meta-query types (repeat nil)))
+                 (api-version-from-con meta-con)))
+
+(defn- flatten-list-results [list-results]
+  (map convert/obj->map list-results))
+
+(defn- list-metas
+  [con types]
+  (flatten-list-results (doall (mapcat (partial list-metas* con) (partition-all 3 types)))))
+
+(defn- list-metadata
+  "Lists all metadata of a given type"
+  [con-or-kw meta-type]
+  (map :FullName (list-metas con-or-kw [meta-type])))
+
 (defn- read-metadata-parted [meta-con meta-describe-client meta-type names]
-   (jd/from-java (.getRecords (.readMetadata meta-con meta-type (into-array String names)))))
+   (mapv convert/obj->map (.getRecords (.readMetadata meta-con meta-type (into-array String names)))))
 
 (defn- read-metadata [meta-con meta-describe-client meta-type names]
   (doall (mapcat #(read-metadata-parted meta-con meta-describe-client meta-type %1) (partition-all 10 names))))
 
-(defn- update-metadata-parted [^MetadataConnection meta-con metadata-type metadata]
-  (.updateMetadata meta-con (into-array Metadata (map #(jd/to-java (Class/forName (str "com.sforce.soap.metadata." metadata-type)) %) metadata))))
+(defn- update-metadata-parted [^MetadataConnection meta-con metadata]
+  (.updateMetadata meta-con (into-array Metadata (map #(convert/map->obj %) metadata))))
 
 (defn- update-metadata [meta-con meta-describe-client metadata]
-  (doall (mapcat #(update-metadata-parted meta-con "CustomObject" %) (partition-all 10 metadata))))
+  (doall (mapcat #(update-metadata-parted meta-con %) (partition-all 10 metadata))))
 
 (extend-protocol MetadataClient
   MetadataConnection
+  (list [this meta-describe-client meta-type]
+    (list-metadata this meta-type))
   (read [this meta-describe-client meta-type names]
     (read-metadata this meta-describe-client meta-type names))
   (update [this meta-describe-client metadata]

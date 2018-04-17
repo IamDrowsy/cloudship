@@ -3,7 +3,10 @@
             [cloudship.data :as data])
   (:import (java.util UUID)))
 
-(def test-con :absc)
+(def test-con {:cache-name :absc
+               :auth-method "sfdx"
+               :org "ABSC"
+               :proxy {:host "proxy" :port 8080}})
 
 (deftest basic-data-interaction
   (testing "Insert of account with owner"))
