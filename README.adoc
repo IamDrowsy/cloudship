@@ -17,7 +17,7 @@ It's designed to work from the repl against different orgs at he same time and s
 * Convenient methods taking and returning Clojure Datastructures via
 ** SOAP-Api
 ** Bulk-Api
-** Meta-Api
+** Meta-Api (small experimental part)
 ** csv-Files (cast with the describe-data of an existing org)
 
 == Usage
@@ -84,11 +84,6 @@ Given a property map, cloudship will try to create an `CloudshipClient` Record b
 . add `https://` to url if missing
 . add `.<sandbox>` to username if target is sandbox and it's missing
 
-After this, the property map should conform to the following spec:
-[source,clojure]
-----
-include::{sourcedir}/cloudship/connection/props/spec.clj[lines=27..29]
-----
 
 ==== Resolving Flags
 
