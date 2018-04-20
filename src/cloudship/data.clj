@@ -84,6 +84,13 @@
            (in-query-too-long? in query-string) (split-up-in-query client object field-list options)
            :else (query client query-string options)))))
 
+(defn count-records
+  "Returns the number of records for a given Object and options. Options are the same as q."
+  ([cloudship object]
+   (count-records cloudship object {}))
+  ([cloudship object options]
+   (:expr0 (first (q cloudship object "count(Id)" options)))))
+
 ;CRUD stuff
 
 (defn- resolved-crud-call [client-description api-call & other-args]

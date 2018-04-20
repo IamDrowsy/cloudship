@@ -56,7 +56,7 @@
         ;find-field-by-reference is needed here, because when we query Account.Name but there is no account attached we get back :Account nil
         (if-let [field (or (find-field obj-data field-name) (find-field-by-reference-name obj-data field-name))]
           (:type field)
-          (do (t/warn "no field" (str object-name "." field-name) "found, defaulting to string") "string"))))))
+          (do (t/warn "no field" (str object-name "." field-name) "found, cannot coerce type (leaving it untouched).") "unknown"))))))
 
 (defmulti string->cloudship-fn*
   "Returns a function that parses a given string into the cloudship type used for the given object and field (using the data-describe client)."
@@ -68,7 +68,7 @@
   ([field-type]
    (let [parse-fn (string->cloudship-fn* field-type)]
      (fn [string]
-       (when-not (or (nil? string) (str/blank? string))
+       (when-not (or (nil? string) (and (string? string) (str/blank? string)))
          (parse-fn string)))))
   ([data-describe-client object-name field-name]
    (string->cloudship-fn (field-type data-describe-client object-name field-name))))
@@ -82,6 +82,7 @@
 (def datetime-formatter (jtf/formatter :iso-date-time))
 (def date-formatter (jtf/formatter :iso-date))
 
+(defmethod string->cloudship-fn* "unknown" [type] identity)
 (defmethod string->cloudship-fn* "string" [type] identity)
 (defmethod string->cloudship-fn* "email" [type] identity)
 (defmethod string->cloudship-fn* "reference" [type] identity)
