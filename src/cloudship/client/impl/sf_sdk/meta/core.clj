@@ -4,7 +4,8 @@
             [cloudship.client.meta.protocol :as p :refer [MetadataClient MetadataDescribeClient]]
             [cloudship.client.impl.sf-sdk.meta.convert :as convert]
             [cloudship.util.java-data-extension]
-            [clojure.java.data :as jd])
+            [clojure.java.data :as jd]
+            [taoensso.timbre :as t])
   (:import (com.sforce.soap.metadata MetadataConnection Metadata ListMetadataQuery)
            (com.sforce.soap.partner PartnerConnection)
            (com.sforce.ws ConnectorConfig)))
@@ -89,8 +90,22 @@
   [con-or-kw meta-type]
   (map :FullName (list-metas con-or-kw [meta-type])))
 
+;some metadata comes back as null (Social Post Layout), we need to make sure to warn and remove them
+(defn- warn-and-remove-nils [recived wanted]
+  (if (some nil? recived)
+    (let [known (into #{} (map #(.getFullName %) (remove nil? recived)))]
+      (do (t/warn "Components "
+                  (clojure.set/difference (into #{} wanted)
+                                          known)
+                  " were recieved as null")
+          (remove nil? recived)))
+    recived))
+
 (defn- read-metadata-parted [meta-con meta-describe-client meta-type names]
-   (mapv convert/obj->map (.getRecords (.readMetadata meta-con meta-type (into-array String names)))))
+   (mapv convert/obj->map
+         (warn-and-remove-nils
+           (.getRecords (.readMetadata meta-con meta-type (into-array String names)))
+           names)))
 
 (defn- read-metadata [meta-con meta-describe-client meta-type names]
   (doall (mapcat #(read-metadata-parted meta-con meta-describe-client meta-type %1) (partition-all 10 names))))

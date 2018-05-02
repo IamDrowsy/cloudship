@@ -7,18 +7,20 @@
            [com.sforce.soap.metadata Metadata WebLink CustomField]))
 
 (defn find-fields [o]
-  (let [fields
-        (->> #_(:members (r/reflect o))
-          (r/transitive-reflect-members o)
-          (filter (like {:name #(str/starts-with? (name %) "get")
-                         :flags #(and (% :public)
-                                      (not (% :abstract))
-                                      (not (% :static)))
-                         :parameter-types []}))
-          (map :name)
-          (map name)
-          (map (fn [s] (subs s 3))))]
-    (sort (into #{} fields))))
+  (if (nil? o)
+    (do (println "got nil in find fields") #{})
+    (let [fields
+          (->> #_(:members (r/reflect o))
+            (r/transitive-reflect-members o)
+            (filter (like {:name            #(str/starts-with? (name %) "get")
+                           :flags           #(and (% :public)
+                                                  (not (% :abstract))
+                                                  (not (% :static)))
+                           :parameter-types []}))
+            (map :name)
+            (map name)
+            (map (fn [s] (subs s 3))))]
+      (sort (into #{} fields)))))
 
 (defn str-invoke [instance method-str & args]
   (Reflector/invokeInstanceMethod
