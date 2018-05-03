@@ -36,7 +36,9 @@
   (fn [type]
     (if-let [type-info (get (:types @atom) type)]
       type-info
-      (swap! atom #(assoc-in % [:types type] (mp/describe-type underlying-describe-client type))))))
+      (get-in
+        (swap! atom #(assoc-in % [:types type] (mp/describe-type underlying-describe-client type)))
+        [:types type]))))
 
 (defn memoize-describe-client
   "Takes a DataDescribeClient and returns a new one that uses an atom to cache every "
