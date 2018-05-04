@@ -17,6 +17,9 @@
 (defn read [cloudship metadata-type & metadata-names]
   (p/read cloudship cloudship metadata-type (misc/normalize-simple-var-args metadata-names)))
 
+(defn read-all [cloudship metadata-type]
+  (p/read cloudship cloudship metadata-type (list cloudship metadata-type)))
+
 (defn update [cloudship metadata]
   (p/update cloudship cloudship metadata))
 
