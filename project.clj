@@ -17,9 +17,9 @@
                  [com.taoensso/nippy "2.14.0"]
                  [ebenbild "0.1.1"]
                  [com.rpl/specter "1.1.0"]
-                 [com.force.api/force-partner-api "42.0.0"]
-                 [com.force.api/force-wsc "42.0.0"]
-                 [com.force.api/force-metadata-api "42.0.0"]]
+                 [com.force.api/force-partner-api "43.0.0"]
+                 [com.force.api/force-wsc "43.0.0"]
+                 [com.force.api/force-metadata-api "43.0.0"]]
 
   :repositories [["mulesoft-releases" "https://repository.mulesoft.org/releases/"]]
 
