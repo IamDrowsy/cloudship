@@ -82,6 +82,12 @@
 (def datetime-formatter (jtf/formatter :iso-date-time))
 (def date-formatter (jtf/formatter :iso-date))
 
+(defn coerce-bool [s]
+  ;only special case as 0 becomes false automaticly
+  (if (= s "1")
+    true
+    (Boolean/parseBoolean s)))
+
 (defmethod string->cloudship-fn* "unknown" [type] identity)
 (defmethod string->cloudship-fn* "string" [type] identity)
 (defmethod string->cloudship-fn* "email" [type] identity)
@@ -92,7 +98,7 @@
 (defmethod string->cloudship-fn* "multipicklist" [type] identity)
 (defmethod string->cloudship-fn* "combobox" [type] identity)
 (defmethod string->cloudship-fn* "base64" [type] #(.decode ^Base64$Decoder (Base64/getDecoder) ^String %))
-(defmethod string->cloudship-fn* "boolean" [type] #(Boolean/parseBoolean %))
+(defmethod string->cloudship-fn* "boolean" [type] coerce-bool)
 (defmethod string->cloudship-fn* "currency" [type] #(Double/parseDouble %))
 (defmethod string->cloudship-fn* "textarea" [type] identity)
 (defmethod string->cloudship-fn* "double" [type]  #(Double/parseDouble %))

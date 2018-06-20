@@ -27,12 +27,22 @@
 (defn instant->calendar [^Instant instant]
   (GregorianCalendar/from (ZonedDateTime/ofInstant instant (ZoneId/of "Z"))))
 
+(defn zoned->calender [^ZonedDateTime zoned]
+  (GregorianCalendar/from zoned))
+
+(defn coerce-bool [s]
+  ;only special case as 0 becomes false automaticly
+  (if (= s "1")
+    true
+    (Boolean/parseBoolean s)))
+
 (def-cloudship->sdk-client* "string" String identity)
 (def-cloudship->sdk-client* "date" String #(local-date->date (type/string->cloudship "date" %)))
-(def-cloudship->sdk-client* "datetime" String #(instant->calendar (type/string->cloudship "datetime" %)))
+(def-cloudship->sdk-client* "datetime" String #(zoned->calender (type/string->cloudship "datetime" %)))
 (def-cloudship->sdk-client* "date" LocalDate local-date->date)
 (def-cloudship->sdk-client* "datetime" Instant instant->calendar)
+(def-cloudship->sdk-client* "datetime" ZonedDateTime zoned->calender)
 (def-cloudship->sdk-client* "int" String #(Integer/parseInt %))
 (def-cloudship->sdk-client* "int" Long (fnil int nil))
-(def-cloudship->sdk-client* "boolean" String #(Boolean/parseBoolean %))
+(def-cloudship->sdk-client* "boolean" String coerce-bool)
 (def-cloudship->sdk-client* "base64" String #(.getBytes %))
