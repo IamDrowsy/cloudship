@@ -5,6 +5,7 @@
             [cloudship.spec.config :as config-spec]
             [cloudship.util.spec :as u]
             [cloudship.connection.props.flags :as flags]
+            [cloudship.connection.props.proxy :as proxy]
             [clojure.string :as str]))
 
 (def default-api-version "42.0")
@@ -61,6 +62,12 @@
         (update :username #(str % "." (name sandbox))))
     props))
 
+(defn- +proxy [{:keys [url] :as props}]
+  (if-let [default-proxy (proxy/find-default-proxy url)]
+    (update props :proxy merge default-proxy)
+    props))
+
+
 (defn ->props [kw-or-map]
   (let [props (cond (keyword? kw-or-map) #_=> (kw/kw->props kw-or-map)
                     (map? kw-or-map)     #_=> (kw/find-and-merge-props kw-or-map))]
@@ -70,5 +77,6 @@
                         +url
                         +flags
                         +protocol
+                        +proxy
                         +sandbox-username-extension))))
 
