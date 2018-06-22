@@ -2,6 +2,7 @@
   (:require [cloudship.auth.method :as am]
             [cloudship.auth.soap]
             [cloudship.auth.sfdx]
+            [cloudship.auth.web-auth]
             [cloudship.spec.config :as sc]
             [clojure.spec.alpha :as s]))
 

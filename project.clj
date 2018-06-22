@@ -17,11 +17,15 @@
                  [com.taoensso/nippy "2.14.0"]
                  [ebenbild "0.1.1"]
                  [com.rpl/specter "1.1.0"]
+				 [org.eclipse.swt/org.eclipse.swt.win32.win32.x86_64 "4.5.1"]
+                 [clj-http "3.6.1"]
                  [com.force.api/force-partner-api "43.0.0"]
                  [com.force.api/force-wsc "43.0.0"]
                  [com.force.api/force-metadata-api "43.0.0"]]
 
-  :repositories [["mulesoft-releases" "https://repository.mulesoft.org/releases/"]]
+  :repositories [["mulesoft-releases" "https://repository.mulesoft.org/releases/"]
+                ["swt" "https://maven-eclipse.github.io/maven"]]
+
 
   :profiles {:dev {:resource-paths ["resources-test"]
                    :dependencies [[org.clojure/test.check "0.10.0-alpha2"]

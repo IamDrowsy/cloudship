@@ -43,6 +43,10 @@
   [this] (resolve-flag {:flag-name "auth-method" :opt "sfdx"}))
 
 (defmethod resolve-flag
+  "web"
+  [this] (resolve-flag {:flag-name "auth-method" :opt "web"}))
+
+(defmethod resolve-flag
   "auth"
   [this] (resolve-flag {:flag-name "auth-method" :opt (:opt this)}))
 
