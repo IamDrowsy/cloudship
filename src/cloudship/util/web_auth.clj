@@ -8,7 +8,8 @@
            (org.eclipse.swt.layout FillLayout)))
 
 (defn check-and-parse-callback [current-url options]
-  (when (str/starts-with? current-url (:callback-url options))
+  (when (and (str/starts-with? current-url (:callback-url options))
+             (str/includes? current-url "#"))
     (as-> current-url u
           (str/split u #"#")
           (second u)
