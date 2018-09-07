@@ -11,7 +11,7 @@
 (defn proxy-from-selector [url]
   (let [proxies (into [] (.select (ProxySelector/getDefault) (URI. url)))]
     (if (not-empty proxies)
-      (let [^InetSocketAddress address (.address ^Proxy (first proxies))]
+      (if-let [^InetSocketAddress address (.address ^Proxy (first proxies))]
         {:port (.getPort address)
          :host (.getHostString address)}))))
 
