@@ -69,7 +69,7 @@
                 (map->sh-args opts))
          parsed-result (-> result
                            (update :out safe-json-read)
-                           (update :err safe-json-read))]
+                           #_(update :err safe-json-read))]
      (if (zero? (:exit result))
        (:out parsed-result)
        (throw (ex-info (str "SFDX Error: " (get-in parsed-result [:err :message])) parsed-result))))))

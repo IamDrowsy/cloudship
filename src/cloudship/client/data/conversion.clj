@@ -54,13 +54,14 @@
       (if (cross-reference-field? field-name)
         (field-type-of-cross-reference-field data-describe-client obj-data field-name)
         ;find-field-by-reference is needed here, because when we query Account.Name but there is no account attached we get back :Account nil
-        (if-let [field (or (find-field obj-data field-name) (find-field-by-reference-name obj-data field-name))]
+        (if-let [field (or (find-field obj-data field-name) (find-field-by-reference-name obj-data field-name)
+                           ({"AggregateResult" "unknown"} object-name))]
           (:type field)
           (do (t/warn "no field" (str object-name "." field-name) "found, cannot coerce type (leaving it untouched).") "unknown"))))))
 
 (defmulti string->cloudship-fn*
   "Returns a function that parses a given string into the cloudship type used for the given object and field (using the data-describe client)."
-  (fn [field-type] field-type))
+  (fn [field-type] (str/lower-case field-type)))
 
 (defn string->cloudship-fn
   "Returns a function that parses a given string into the cloudship type used for the given type
@@ -115,7 +116,7 @@
 (defmethod string->cloudship-fn* "url" [type] identity)
 
 (defmulti cloudship->string-fn*
-  (fn [field-type] field-type))
+  (fn [field-type] (str/lower-case field-type)))
 
 (defmethod cloudship->string-fn* "string" [type] str)
 (defmethod cloudship->string-fn* "email" [type] str)

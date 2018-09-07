@@ -190,3 +190,8 @@
    Usally contains username, session, url and the underlying client."
   [cloudship]
   (p/info cloudship))
+
+(defn user-info
+  "Returns the userinfo for a cloudship"
+  [cloudship]
+  (:user (:data-client (p/info cloudship))))
