@@ -30,7 +30,7 @@ Include cloudship in your project or clone this project and start a repl using `
 (data/q :mycon.auth:web "Account" [:Id] {:limit 10})
 ----
 The second call should open a browser and starts an OAuth flow. You can then login into your
-https://developer.salesforce.com/signup[dev-org]
+https://developer.salesforce.com/signup[Developer Org]
 and when the flow is finished, cloudship will use the session the query the
 Ids of the first 10 Accounts on your org and return them.
 

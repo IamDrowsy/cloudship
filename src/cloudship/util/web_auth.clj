@@ -82,7 +82,7 @@
 
 (def default-options
   {:consumer-key "3MVG98_Psg5cppyZCaw1PcLjYvU32k1LsZ8ZU76RP_vq5uycVvzL05cYgeQJ97bFsynhV94lXqWbc2Xdbzsex"
-   :base-url "https://login.salesforce.com"
+   :url "https://login.salesforce.com"
    :callback-url "http://localhost"
    :response-type "code"
    :callback-port 8090
@@ -90,7 +90,7 @@
 
 (defn- build-url [request-key options]
   (let [url
-        (str (auth-url (:base-url options))
+        (str (auth-url (:url options))
              "?response_type=" (u/url-encode (:response-type options))
              "&client_id=" (u/url-encode (:consumer-key options))
              "&state=" (u/url-encode request-key)
