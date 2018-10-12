@@ -1,4 +1,4 @@
-(ns cloudship.util.result
+(ns ^:no-doc cloudship.util.result
   (:require [taoensso.timbre :as t]
             [clojure.spec.alpha :as s]
             [cloudship.spec.data :as data]))

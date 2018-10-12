@@ -1,4 +1,4 @@
-(ns cloudship.util.user-interact
+(ns ^:no-doc cloudship.util.user-interact
   (:import [javax.swing JOptionPane JLabel JPanel JPasswordField
                         JFrame]))
 

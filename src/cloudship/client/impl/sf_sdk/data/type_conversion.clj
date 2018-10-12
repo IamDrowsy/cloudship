@@ -1,4 +1,5 @@
-(ns ^{:doc "Internal namespace to transform types from cloudship to the salesforce java sdk."}
+(ns ^{:doc "Internal namespace to transform types from cloudship to the salesforce java sdk."
+      :no-doc true}
   cloudship.client.impl.sf-sdk.data.type-conversion
   (:require [taoensso.timbre :as t]
             [clojure.string :as str]

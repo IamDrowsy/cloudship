@@ -1,4 +1,4 @@
-(ns cloudship.client.data.describe
+(ns ^:no-doc cloudship.client.data.describe
   (:require [taoensso.timbre :as t]
             [cloudship.client.data.protocol :as p]))
 

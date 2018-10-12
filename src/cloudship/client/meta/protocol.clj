@@ -1,4 +1,4 @@
-(ns cloudship.client.meta.protocol
+(ns ^:no-doc cloudship.client.meta.protocol
   (:refer-clojure :exclude [update read list]))
 
 (defprotocol MetadataClient

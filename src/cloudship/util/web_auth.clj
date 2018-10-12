@@ -1,4 +1,4 @@
-(ns cloudship.util.web-auth
+(ns ^:no-doc cloudship.util.web-auth
   (:require [clojure.string :as str]
             [com.rpl.specter :refer :all]
             [clj-http.util :as u]

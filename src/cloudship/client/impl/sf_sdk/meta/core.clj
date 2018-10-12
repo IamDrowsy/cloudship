@@ -1,4 +1,4 @@
-(ns cloudship.client.impl.sf-sdk.meta.core
+(ns ^:no-doc cloudship.client.impl.sf-sdk.meta.core
   (:require [clojure.string :as str]
             [cloudship.client.data.protocol :as base :refer [BaseClient]]
             [cloudship.client.meta.protocol :as p :refer [MetadataClient MetadataDescribeClient]]

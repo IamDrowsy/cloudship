@@ -1,4 +1,4 @@
-(ns cloudship.connection.props.flags.keepass
+(ns ^:no-doc cloudship.connection.props.flags.keepass
   (:require [cloudship.util.keepass :as kp]
             [clojure.spec.alpha :as s]
             [cloudship.util.spec :as u]

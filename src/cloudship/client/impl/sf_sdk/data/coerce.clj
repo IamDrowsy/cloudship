@@ -1,4 +1,4 @@
-(ns cloudship.client.impl.sf-sdk.data.coerce
+(ns ^:no-doc cloudship.client.impl.sf-sdk.data.coerce
   (:require [taoensso.timbre :as t]
             [cloudship.client.impl.sf-sdk.data.type-conversion :as sdk-convert]
             [cloudship.client.data.conversion :as convert])

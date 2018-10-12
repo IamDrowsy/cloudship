@@ -1,4 +1,4 @@
-(ns cloudship.connection.props.flags.version
+(ns ^:no-doc cloudship.connection.props.flags.version
   (:require [clojure.string :as str]
             [cloudship.util.spec :as u]
             [cloudship.spec.config :as sc]))

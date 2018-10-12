@@ -1,4 +1,4 @@
-(ns cloudship.client.impl.mem.meta-describe
+(ns ^:no-doc cloudship.client.impl.mem.meta-describe
   (:require [cloudship.client.meta.protocol :as mp :refer [MetadataDescribeClient]]
             [cloudship.client.data.protocol :as p :refer [BaseClient]]
             [taoensso.nippy :as nippy]

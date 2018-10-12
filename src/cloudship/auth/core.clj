@@ -1,4 +1,4 @@
-(ns cloudship.auth.core
+(ns ^:no-doc cloudship.auth.core
   (:require [cloudship.auth.method :as am]
             [cloudship.auth.soap]
             [cloudship.auth.sfdx]

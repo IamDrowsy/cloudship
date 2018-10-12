@@ -1,4 +1,4 @@
-(ns cloudship.auth.sfdx
+(ns ^:no-doc cloudship.auth.sfdx
   (:require [clojure.spec.alpha :as s]
             [cloudship.util.sfdx :as sfdx]
             [cloudship.spec.config :as sc]

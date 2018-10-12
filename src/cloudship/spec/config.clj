@@ -1,4 +1,4 @@
-(ns cloudship.spec.config
+(ns ^:no-doc cloudship.spec.config
   (:require [clojure.spec.alpha :as s]))
 
 (s/def ::org string?)

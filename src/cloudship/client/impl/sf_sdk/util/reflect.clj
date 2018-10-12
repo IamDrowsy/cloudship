@@ -1,5 +1,5 @@
 (ns
-  ^{:doc "Internal Reflection Stuff"}
+  ^:no-doc
   cloudship.client.impl.sf-sdk.util.reflect
   (:require [clojure.reflect :as r]
             [clojure.string :as str])

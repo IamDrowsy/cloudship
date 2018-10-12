@@ -1,4 +1,4 @@
-(ns cloudship.spec.data
+(ns ^:no-doc cloudship.spec.data
   (:require [clojure.spec.alpha :as s]))
 
 (s/def ::Id string?)

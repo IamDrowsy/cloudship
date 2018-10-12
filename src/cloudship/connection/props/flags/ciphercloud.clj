@@ -1,4 +1,4 @@
-(ns cloudship.connection.props.flags.ciphercloud
+(ns ^:no-doc cloudship.connection.props.flags.ciphercloud
   (:require [clojure.string :as str]
             [clojure.spec.alpha :as s]
             [cloudship.spec.config :as cs]

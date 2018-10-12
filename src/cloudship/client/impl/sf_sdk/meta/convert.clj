@@ -1,4 +1,4 @@
-(ns cloudship.client.impl.sf-sdk.meta.convert
+(ns ^:no-doc cloudship.client.impl.sf-sdk.meta.convert
   (:require [cloudship.client.impl.sf-sdk.util.reflect :as r]
             [clojure.string :as str]
             [ebenbild.core :refer [like]])

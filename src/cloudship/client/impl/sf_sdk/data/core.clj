@@ -1,4 +1,4 @@
-(ns cloudship.client.impl.sf-sdk.data.core
+(ns ^:no-doc cloudship.client.impl.sf-sdk.data.core
   (:refer-clojure :exclude [update])
   (:require [taoensso.timbre :as t]
             [cloudship.client.data.protocol :refer [DataClient]]

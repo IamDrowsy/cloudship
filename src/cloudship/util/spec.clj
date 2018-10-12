@@ -1,4 +1,4 @@
-(ns cloudship.util.spec
+(ns ^:no-doc cloudship.util.spec
   (:require [clojure.spec.alpha :as s]
             [cloudship.spec.config :as sc]
             [expound.alpha :refer [expound-str]]

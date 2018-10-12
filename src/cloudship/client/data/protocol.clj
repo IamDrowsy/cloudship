@@ -1,4 +1,4 @@
-(ns cloudship.client.data.protocol
+(ns ^:no-doc cloudship.client.data.protocol
   (:refer-clojure :exclude [update]))
 
 (defprotocol BaseClient

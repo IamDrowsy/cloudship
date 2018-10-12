@@ -1,4 +1,4 @@
-(ns cloudship.util.java-data-extension
+(ns ^:no-doc cloudship.util.java-data-extension
   (:require [clojure.java.data :as jd]))
 
 (defmethod jd/from-java Boolean [bool]

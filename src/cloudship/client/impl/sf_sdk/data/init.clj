@@ -1,4 +1,4 @@
-(ns cloudship.client.impl.sf-sdk.data.init
+(ns ^:no-doc cloudship.client.impl.sf-sdk.data.init
   (:require [clojure.spec.alpha :as s]
             [clojure.string :as str]
             [cloudship.client.data.protocol :refer [DataDescribeClient DataClient BaseClient]]

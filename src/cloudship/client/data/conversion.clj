@@ -1,4 +1,4 @@
-(ns cloudship.client.data.conversion
+(ns ^:no-doc cloudship.client.data.conversion
   (:require [ebenbild.core :refer [like]]
             [taoensso.timbre :as t]
             [clojure.string :as str]

@@ -1,4 +1,4 @@
-(ns cloudship.connection.props.proxy
+(ns ^:no-doc cloudship.connection.props.proxy
   (:import (java.net ProxySelector URI Proxy InetSocketAddress)))
 
 (defn proxy-from-sysprops []

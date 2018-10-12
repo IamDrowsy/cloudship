@@ -1,4 +1,4 @@
-(ns cloudship.auth.method
+(ns ^:no-doc cloudship.auth.method
   (:require [cloudship.spec.config :as sc]))
 
 (defmulti auth

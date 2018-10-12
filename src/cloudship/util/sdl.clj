@@ -1,4 +1,4 @@
-(ns cloudship.util.sdl
+(ns ^:no-doc cloudship.util.sdl
   (:require [clojure.java.io :as io]
             [com.rpl.specter :refer :all]
             [clojure.string :as str])

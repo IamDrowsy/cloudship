@@ -1,4 +1,4 @@
-(ns cloudship.auth.web-auth
+(ns ^:no-doc cloudship.auth.web-auth
   (:require [cloudship.auth.method :as am]
             [cloudship.spec.config :as sc]
             [cloudship.util.web-auth :as web-auth]

@@ -1,4 +1,4 @@
-(ns cloudship.client.core
+(ns ^:no-doc cloudship.client.core
   (:require [cloudship.auth.core :as auth]
             [cloudship.client.data.protocol :as p :refer [DataDescribeClient DataClient BaseClient]]
             [cloudship.client.meta.protocol :as mp :refer [MetadataClient MetadataDescribeClient]]

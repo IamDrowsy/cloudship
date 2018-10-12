@@ -38,14 +38,14 @@
 (defn- failure->string [result]
   (with-out-str (fail/pprint-failure result)))
 
-(defn try-parsing [kw]
+(defn- try-parsing [kw]
   (let [result (insta/parse parser (name kw))]
     (if (insta/failure? result)
       (throw (ex-info (failure->string result)
                       {:input (name kw)}))
       result)))
 
-(defn parse-keyword
+(defn- parse-keyword
   "Takes a keyword and parses it into a map"
   [kw]
   (insta/transform

@@ -1,4 +1,4 @@
-(ns cloudship.auth.soap
+(ns ^:no-doc cloudship.auth.soap
   (:require [cloudship.auth.method :as am]
             [cloudship.client.impl.sf-sdk.data.init :as sdk]
             [cloudship.spec.config :as sc]

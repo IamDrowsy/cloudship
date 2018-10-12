@@ -1,4 +1,4 @@
-(ns cloudship.client.data.query
+(ns ^:no-doc cloudship.client.data.query
   (:require [clojure.java.data :as jd]
             [cloudship.client.data.describe :as describe]
             [ebenbild.core :refer [like]]

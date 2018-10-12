@@ -1,4 +1,4 @@
-(ns cloudship.client.impl.sf-sdk.data.bulk
+(ns ^:no-doc cloudship.client.impl.sf-sdk.data.bulk
   (:require [clojure.set :as set]
             [clojure.string :as str]
             [cloudship.util.csv :as csv]

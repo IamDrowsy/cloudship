@@ -1,4 +1,4 @@
-(ns cloudship.util.misc
+(ns ^:no-doc cloudship.util.misc
   (:require [taoensso.timbre :as t]))
 
 (defn normalize-simple-var-args

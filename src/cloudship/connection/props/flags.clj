@@ -1,4 +1,4 @@
-(ns cloudship.connection.props.flags
+(ns ^:no-doc cloudship.connection.props.flags
   (:require [cloudship.connection.props.flags.ciphercloud :as cc]
             [cloudship.connection.props.flags.version :as v]
             [cloudship.connection.props.flags.keepass :as kp]))
