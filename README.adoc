@@ -1,7 +1,6 @@
 = cloudship
 
 :sourcedir: src
-:exampledir: examples
 
 Cloudship is a Clojure toolkit to explore and manipulate your salesforce instances.
 It's designed to work from the repl against different orgs at he same time and supports
@@ -10,58 +9,80 @@ It's designed to work from the repl against different orgs at he same time and s
 ** Username + Password or Session in Configuration
 ** Username + Password in Keepass
 ** sfdx
-** oauth (not yet)
+** OAuth via web-server flow
 * Extensions to Configuration
 ** connect via CipherCloud
 ** your own extension
 * Convenient methods taking and returning Clojure Datastructures via
 ** SOAP-Api
 ** Bulk-Api
-** Meta-Api (small experimental part)
+** Meta-Api (describe and read for now)
 ** csv-Files (cast with the describe-data of an existing org)
 
-== Usage
+== Quickstart
 
+Include cloudship in your project or clone this project and start a repl using `lein repl`
+(you will need https://leiningen.org/[Leiningen] for this).
 
+[source,clojure]
+----
+(require '[cloudship.data :as data])
+(data/q :mycon.auth:web "Account" [:Id] {:limit 10})
+----
+The second call should open a browser and starts an OAuth flow. You can then login into your
+https://developer.salesforce.com/signup[dev-org]
+and when the flow is finished, cloudship will use the session the query the
+Ids of the first 10 Accounts on your org and return them.
 
-== Connection Creation
-Every function that talks to a Salesforce Org takes the `Cloudship`
-as first argument. This can be either:
+Also the session is cached for one hour and every subsequent call using the key `:mycon.auth:web` will use the
+cached session.
 
-* a `CloudshipClient` Record
-* a map of connection properties
-* a keyword
+You are up and running to explore the api further.
 
-When working with many orgs from the repl we recommend to configure the usage
-of keywords. The resulting connections will be cached and managed for you.
+== How it works
+Every function that talks to a Salesforce Org (`cloudship.data` and `cloudship.metadata`) takes a `cloudship`
+as first argument (usally a keyword as in the quickstart).
 
-If you don't care about the internals, you can jump to the <<Resolve Examples>>
+While working with your data and metadata when you have an established connection is pretty straight forward,
+ (and you can probably stop reading here if you only have one dev-org to toy around) the configuration and connection resolving is a bit sophisticated.
 
-=== From Keyword
-A keyword that describes a `Cloudship` has the following syntax:
+This is because cloudship is developed to easily access many orgs/sandboxes from the repl fast and
+at the same time. For example if `:myprod` is configured to connect to your production org, `:myprod:mydev`
+automaticly resolves to the sandbox `mydev` of your org and `:myprod.v:40` connects to your production using
+api-version 40.
+
+So here is a explanation how the resolval works.
+
+=== Getting a Connection
+When cloudship resolves a keyword or a basic config map to a connection there are four steps:
+
+* parse keyword into basic config map (when starting with a keyword)
+* expand into a full config map
+* run an auth mechanism
+* cache this information (including the resulting session) for fast reuse
+
+=== Start with a Keyword
+A keyword that describes a `cloudship` has the following syntax:
 ```
 :org-name[:sandbox-name][.flag|.flag:opt]*
 ```
 where the org-name can be choosen freely,
-sandbox-name is the name of the sandbox you want to connect to
-and flag / flag:opt are modifiers that can change what your
-connection properties look like before the connection is created
-(see <<Resolving Flags>>).
+sandbox-name is the name of the sandbox you want to connect.
 
-Given a keyword as connection, cloudship will do the following:
+Given this keyword, cloudship will do the following:
 
 . check if there is a cached `CloudshipClient` Record for this keyword
 . if not, build a property map from the keyword by
-.. parsing the keyword into a initial prop map (with `:org-name` `:sandbox` `:flags` and `:cache-name` (original kw) as keys)
+.. parsing the keyword into a initial prop map (with `:org-name` `:sandbox` `:flags` and `:cache-name` (the full keyword) as keys)
 .. continue with the <<From Property Map>>
 
-This process is a bit complex to provide a trade-off between ease and flexibility
- of configuration and usage.
+To see this in action run
+[source,clojure]
+----
+(cloudship.connection.props.keyword/kw->props :your:keyword)`
+----
 
-For the most part you don't need to care about these details.
-Just follow the <<Tutorial>> and you will get the idea.
-
-=== From Property Map
+=== Expand Property Map
 
 Given a property map, cloudship will try to create an `CloudshipClient` Record by
 
@@ -73,7 +94,7 @@ Given a property map, cloudship will try to create an `CloudshipClient` Record b
 .. all entries in `[:orgs :org-name]` of config map
 .. all entries in `[:orgs :org-name :sandboxes "sandbox-name"]` of config-map
 .. the initial prop map
-. add or coerce api-version (currently default is `42.0`)
+. add or coerce api-version (currently default is `43.0`)
 . build base-url from `:sandbox`, `:instance` and `:my-domain`
 ** providing nothing will result in `login.salesforce.com`
 ** only sandbox will result in `test.salesforce.com`
@@ -82,39 +103,46 @@ Given a property map, cloudship will try to create an `CloudshipClient` Record b
    and will result in `<my-domain>--<sandbox>.cs<instance>.my.salesforce.com`
 . <<Resolving Flags>>
 . add `https://` to url if missing
+. add proxy if there is a system default proxy
 . add `.<sandbox>` to username if target is sandbox and it's missing
 
+To see 1. and 2. in action run
+[source,clojure]
+----
+(cloudship.connection.props.load/find-and-merge-props "props from kw->props"})
+----
+To see the final property map you can run
+[source,clojure]
+----
+(cloudship.connection.props.core/->props :your:keyword:or:map)
+----
 
-==== Resolving Flags
+=== Run Auth
 
-Flags are instructions to modify the connection properties before trying to
-create the `CloudshipClient` Record.
+With the resulting property map, cloudship tries to auth against your org.
+Currently there are three auth methods (you can configure with `:auth-method` in your config).
 
-A Flag can either be a simple String or a Map with `{:flag-name string? ...}`.
-The Multimethod `cloudship.connection.props.flags/resolve-flag` is called
-on the flag and needs to return a function `Property Map -> Property Map`.
+* `:soap` - uses the `login` method of the soap client (default)
+** needs `:username` and `:password` (supports `:security-token`)
+** or just an existing `:session`
+* `:sfdx` - gets session by calling `sfdx:force:org:display -u ${:username or :org}]`
+* `:web` - uses the web server OAuth flow
+** you can provide `:consumer-key`, `:consumer-secret`, `callback-port`, `callback-timeout`
+** if you connect to an own app, make sure to set the `callback-url` to `\https://localhost[[:port]]`.
 
-All Flags are resolved and applied in order until there are no more left.
-
-The following flags are included:
-
-* `v` - Version flag that sets the version to it's opt e.g. `v:39`.
-* `kp` - Keepass, reads username and password from a keepass file.
-** needs `:kpdb` and `:kppath` (vector of path in keepath db).
-** `:kppass` can be set, otherwise will be prompted.
-* `sfdx` gets session by calling `sfdx:force:org:display -u $usernameOrAlias]`
-** needs sfdx in path
-** uses `:username` or `:org` as `$usernameOrAlias`
-* `cc` - CipherCloud, changes the url to a CipherCloud url.
-** needs `:cc-domain` and `:cc-alias`.
-** you probably won't need this.
 
 === Resolve Examples
 
 Given the `cloudship.edn`
 [source,clojure]
 ----
-include::{exampledir}/cloudship-example.edn[]
+{:api-version "40.0"
+ :orgs {:org1 {:username "my@username.de"
+               :password "very-secret1!"
+               :sandboxes {"new" {:api-version "41.0"}}}
+        :my-dev {:kppath ["mydev" "login"]
+                 :kpdb "dir/to/db.kdbx"
+                 :my-domain "cloudship"}}}
 ----
 the keywords will result in the following property maps
 [source,clojure]
@@ -161,6 +189,32 @@ the keywords will result in the following property maps
      :username "my@username.de"}
 ----
 
+=== Resolving Flags
+
+Flags are instructions to modify the connection properties before trying to
+create the `CloudshipClient` Record.
+
+A Flag can either be a simple String or a Map with `{:flag-name string? ...}`.
+The Multimethod `cloudship.connection.props.flags/resolve-flag` is called
+on the flag and needs to return a function `Property Map -> Property Map`.
+
+All Flags are resolved and applied in order until there are no more left.
+
+The following flags are included:
+
+* `v` - Version flag that sets the version to it's opt e.g. `v:39`.
+* `kp` - Keepass, reads username and password from a keepass file.
+** needs `:kpdb` (path to keepath db) and `:kppath` (vector of path in keepath db).
+** `:kppass` can be set, otherwise will be prompted.
+* `auth` short to set the auth-method e.g. `auth:sfdx`
+* `sfdx` short for `auth:sfdx`
+** needs `sfdx` executable in path
+** uses `:username` or `:org` as `$usernameOrAlias`
+* `web` short for `auth:web`
+* `cc` - CipherCloud, changes the url to a CipherCloud url.
+** needs `:cc-domain` and `:cc-alias`.
+** you probably won't need this.
+
 == Advanced Topics
 
 === Missing API Methods
@@ -173,7 +227,7 @@ If you need one of them you can directly call the methods you need against the
 
 === Java SDK Bulk API
 * As the Bulk-API is build with the `csv` content type, inner queries are not supported
-* Also because of this, it's impossible to now wether `SELECT Account.Phone FROM Contact`
+* Also because of this, it's impossible to know wether `SELECT Account.Phone FROM Contact`
  returns `Account.Phone` as `nil` because `Phone` is `nil` or because there is no Account attached
  to the Contact. In this case `{:type "Contact" :Account nil}` will be returned. To avoid this,
  make sure to query a related field that can't be `nil` (like `Id`).
@@ -181,7 +235,7 @@ If you need one of them you can directly call the methods you need against the
 
 == License
 
-Copyright © 2017 Albrecht Schmidt
+Copyright © 2018 Albrecht Schmidt
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.

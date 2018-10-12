@@ -81,8 +81,7 @@
     (reset! server (server/run-server #'handle-request {:port (:callback-port options 8080)}))))
 
 (def default-options
-  {:consumer-key #_"3MVG98_Psg5cppybVAyG0nED1FctTXymm0nXYgOZxeI2hSj3dKRhO6w3rtDgWchoNsOeu.4EzrezJRbJyW58C"
-   "3MVG98_Psg5cppyZCaw1PcLjYvU32k1LsZ8ZU76RP_vq5uycVvzL05cYgeQJ97bFsynhV94lXqWbc2Xdbzsex"
+  {:consumer-key "3MVG98_Psg5cppybVAyG0nED1FctTXymm0nXYgOZxeI2hSj3dKRhO6w3rtDgWchoNsOeu.4EzrezJRbJyW58C"
    :base-url "https://login.salesforce.com"
    :callback-url "http://localhost"
    :response-type "code"

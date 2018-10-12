@@ -38,3 +38,13 @@
   Merges all found conf-files so the latter overwrites the former."
   []
   (apply deep-merge (map slurp-prop-file-if-present (prop-files))))
+
+(defn find-and-merge-props
+  "Finds the configured props with slurp-and-merge-props and merges the kw-props onto it."
+  [{:keys [org sandbox] :as kw-props}]
+  (let [all-props (slurp-and-merge-props)
+        base-props (dissoc all-props :orgs)
+        org-props (dissoc (get-in all-props [:orgs (keyword org)] {}) :sandboxes)
+        sandbox-props (get-in all-props [:orgs (keyword org) :sandboxes sandbox] {})]
+    ;not sure if the order mattered, put kw-props in the end to work with maps as input
+    (deep-merge base-props  org-props sandbox-props kw-props)))

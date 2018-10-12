@@ -4,7 +4,11 @@
             [clojure.string :as str]
             [clojure.data.json :as json]))
 
-(def ^:dynamic *sfdx-executable* "sfdx")
+(defn windows? []
+  (str/starts-with? (System/getProperty "os.name") "Windows"))
+
+(def ^:dynamic *sfdx-executable* (if windows? "sfdx.cmd"
+                                              "sfdx"))
 
 (defn kw->command [kw]
   (name kw))

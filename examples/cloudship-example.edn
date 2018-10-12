@@ -1,7 +1,0 @@
-{:api-version "40.0"
- :orgs {:org1 {:username "my@username.de"
-               :password "very-secret1!"
-               :sandboxes {"new" {:api-version "41.0"}}}
-        :my-dev {:kppath ["mydev" "login"]
-                 :kpdb "dir/to/db.kdbx"
-                 :my-domain "cloudship"}}}

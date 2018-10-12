@@ -3,10 +3,12 @@
             [cloudship.data :as data])
   (:import (java.util UUID)))
 
-(def test-con {:cache-name :absc
+;These test can only run if you have an org with the alias 'cloudship-test' connected to sfdx
+;we need to replace this test when we have an offline mock client, but for now we need to test against a real connection
+
+(def test-con {:cache-name :test
                :auth-method "sfdx"
-               :org "ABSC"
-               :proxy {:host "proxy" :port 8080}})
+               :org "cloudship-test"})
 
 (deftest basic-data-interaction
   (testing "Insert of account with owner"))
@@ -54,7 +56,7 @@
     (is (= "Entity is not in the recycle bin"
            (-> (data/undelete test-con [{:Id id}])
                first :errors first :message)))
-    ;Query all still finds the record if when undelete does not.
+    ;Query all still finds the record even when undelete does not.
     #_(is (empty? (query-account id {:all true})))))
 
 (deftest data-round-trip

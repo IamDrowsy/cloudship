@@ -6,9 +6,10 @@
             [cloudship.util.spec :as u]
             [cloudship.connection.props.flags :as flags]
             [cloudship.connection.props.proxy :as proxy]
-            [clojure.string :as str]))
+            [clojure.string :as str]
+            [cloudship.connection.props.load :as l]))
 
-(def default-api-version "42.0")
+(def default-api-version "43.0")
 
 (defn- +api-version [props]
   (if (:api-version props)
@@ -69,8 +70,8 @@
 
 
 (defn ->props [kw-or-map]
-  (let [props (cond (keyword? kw-or-map) #_=> (kw/kw->props kw-or-map)
-                    (map? kw-or-map)     #_=> (kw/find-and-merge-props kw-or-map))]
+  (let [props (cond (keyword? kw-or-map) #_=> (l/find-and-merge-props (kw/kw->props kw-or-map))
+                    (map? kw-or-map)     #_=> (l/find-and-merge-props kw-or-map))]
     (u/assert-input ::config-spec/preauth-config
                     (-> props
                         +api-version
