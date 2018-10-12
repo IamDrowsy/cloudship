@@ -7,10 +7,10 @@ It's designed to work from the repl against different orgs at he same time and s
 
 * Auth Data from different Sources
 ** Username + Password or Session in Configuration
-** Username + Password in Keepass
 ** sfdx
 ** OAuth via web-server flow
 * Extensions to Configuration
+** get Username + Password from Keepass
 ** connect via CipherCloud
 ** your own extension
 * Convenient methods taking and returning Clojure Datastructures via
