@@ -21,7 +21,10 @@ It's designed to work from the repl against different orgs at he same time and s
 
 == Quickstart
 
-`[cloudship "0.1.0"]`
+
+
+[![cljdoc badge](https://cljdoc.xyz/badge/cloudship/cloudship)](https://cljdoc.xyz/d/cloudship/cloudship/CURRENT)
+[![Clojars Project](https://img.shields.io/clojars/v/cloudship.svg)](https://clojars.org/cloudship)
 
 Include cloudship in your project or clone this project and start a repl using `lein repl`
 (you will need https://leiningen.org/[Leiningen] for this).
