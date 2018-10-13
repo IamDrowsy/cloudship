@@ -2,11 +2,34 @@
   (:require [clojure.java.data :as jd]
             [cloudship.client.data.describe :as describe]
             [ebenbild.core :refer [like]]
-            [clojure.string :as str])
-  (:import (org.mule.tools.soql SOQLParserHelper)))
+            [clojure.string :as str]
+            [instaparse.core :as insta]))
 
-(defn parse-soql-query [query-string]
-  (jd/from-java (SOQLParserHelper/createSOQLData query-string)))
+(def soql-grammar
+  "<query> = <'SELECT'> fieldList <'FROM'> object options?
+   fieldList = fieldListEntry [<','> fieldListEntry]*
+   fieldListEntry = (field|subquery|typeof)
+   <typeof> = 'TYPEOF' <any* 'END'>
+   subquery = <'('> query <')'>
+   <field> = fieldname|aggregate
+   <aggregate> = #'[a-zA-Z0-9]+' '(' fieldname? ')'
+   object = objectname
+   <options> = ['WHERE'|'WITH'|'GROUP BY'|'ORDER BY'|'LIMIT'|'OFFSET'|'FOR'] any*
+   <any> = <#'.'>
+   <objectname> = #'[a-zA-Z0-9_]+'
+   <fieldname> = #'[a-zA-Z0-9_.]+'")
+
+(def whitespace-parser
+  (insta/parser
+    "whitespace = #'\\s+'"))
+
+(def soql-parser
+  (insta/parser soql-grammar
+                :auto-whitespace whitespace-parser
+                :string-ci true))
+
+(defn object-from-query [query-string]
+  (second (last (soql-parser query-string))))
 
 (defn- field-desc->field-list [fields]
   (map (comp keyword :name) fields))

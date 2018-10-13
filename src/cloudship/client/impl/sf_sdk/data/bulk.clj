@@ -131,12 +131,9 @@
 (defn create-batch! [^BulkConnection con job ^String data]
   (.createBatchFromStream con job (ByteArrayInputStream. (.getBytes data "UTF-8"))))
 
-(defn- object-from-query [query-string]
-  (s/select-one [:mainObjectSpec :objectName] (query/parse-soql-query query-string)))
-
 (defn query [partner-connection describe-client query-string {:keys [all] :as options}]
   (let [bulk-con (->bulk-connection partner-connection)
-        object (object-from-query query-string)
+        object (query/object-from-query query-string)
         job (create-job bulk-con {:object object :op (if all :queryAll :query)})
         batches [(create-batch! bulk-con job query-string)]]
     (close-job bulk-con (.getId job))
