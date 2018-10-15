@@ -118,6 +118,7 @@
 (defmulti cloudship->string-fn*
   (fn [field-type] (str/lower-case field-type)))
 
+(defmethod cloudship->string-fn* "unknown" [type] str)
 (defmethod cloudship->string-fn* "string" [type] str)
 (defmethod cloudship->string-fn* "email" [type] str)
 (defmethod cloudship->string-fn* "reference" [type] str)
