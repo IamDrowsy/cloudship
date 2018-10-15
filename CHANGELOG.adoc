@@ -1,6 +1,6 @@
 = Change Log
 
-## [0.1.0] - 2018-10-12
+## [0.1.1] - 2018-10-12
 * replaced dependency on SOQL Parser not hosted on central/clojars with some "good enough" instaparser.
 
 ## [0.1.0] - 2018-10-12
