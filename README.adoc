@@ -22,7 +22,7 @@ It's designed to work from the repl against different orgs at he same time and s
 == Quickstart
 
 
-image::https://cljdoc.org/badge/cloudship/cloudship[link="https://cljdoc.xyz/d/cloudship/cloudship/CURRENT"]
+image::https://cljdoc.org/badge/cloudship/cloudship[link="https://cljdoc.org/d/cloudship/cloudship/CURRENT"]
 image::https://img.shields.io/clojars/v/cloudship.svg[link="https://clojars.org/cloudship"]
 
 Include cloudship in your project or clone this project and start a repl using `lein repl`
