@@ -5,12 +5,18 @@
             [cloudship.client.impl.sf-sdk.meta.convert :as convert]
             [cloudship.util.java-data-extension]
             [clojure.java.data :as jd]
-            [taoensso.timbre :as t])
+            [taoensso.timbre :as t]
+            [clojure.set :as set])
   (:import (com.sforce.soap.metadata MetadataConnection Metadata ListMetadataQuery)
            (com.sforce.soap.partner PartnerConnection)
            (com.sforce.ws ConnectorConfig)))
 
 (def default-namespace "{http://soap.sforce.com/2006/04/metadata}")
+
+(defn- result-to-map
+  "Takes a SaveResult and turns it into a map"
+  [item]
+  (jd/from-java item))
 
 (defn- ->meta-url [soap-url]
   (str/replace soap-url "/u/" "/m/"))
@@ -116,6 +122,17 @@
 (defn- update-metadata [meta-con meta-describe-client metadata]
   (doall (mapcat #(update-metadata-parted meta-con %) (partition-all 10 metadata))))
 
+(defn- rename-metadata [meta-con meta-describe-client meta-type old-name new-name]
+  (try (-> (.renameMetadata meta-con meta-type old-name new-name)
+           (result-to-map)
+           (set/rename-keys {:fullName :old})
+           (assoc :new new-name))
+
+       (catch Throwable t {:success false
+                           :errors [(:cause  (Throwable->map t))]
+                           :old old-name
+                           :new new-name})))
+
 (extend-protocol MetadataClient
   MetadataConnection
   (list [this meta-describe-client meta-type]
@@ -123,4 +140,6 @@
   (read [this meta-describe-client meta-type names]
     (read-metadata this meta-describe-client meta-type names))
   (update [this meta-describe-client metadata]
-    (update-metadata this meta-describe-client metadata)))
+    (update-metadata this meta-describe-client metadata))
+  (rename [this meta-describe-client meta-type old-name new-name]
+    (rename-metadata this meta-describe-client meta-type old-name new-name)))

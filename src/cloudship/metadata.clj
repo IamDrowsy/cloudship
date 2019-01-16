@@ -3,7 +3,8 @@
   (:require [cloudship.client.meta.protocol :as p]
             [cloudship.client.data.protocol :as dp]
             [cloudship.client.core :as c]
-            [cloudship.util.misc :as misc]))
+            [cloudship.util.misc :as misc]
+            [cloudship.util.result :as result]))
 
 (defn describe
   "Returns the global meta describe data for the given cloudship."
@@ -32,6 +33,17 @@
 
 (defn update [cloudship metadata]
   (p/update cloudship cloudship metadata))
+
+(defn rename
+  "Renames a given metadata.
+   you can provide:
+   * [cloudship type old-name new-name]
+   * [cloudship type name-mapping]"
+  ([cloudship metadata-type rename-map]
+   (result/report-results! (doall (map #(rename cloudship metadata-type (key %) (val %))
+                                       rename-map))))
+  ([cloudship metadata-type old-name new-name]
+   (p/rename cloudship cloudship metadata-type old-name new-name)))
 
 (defn evict
   "Removes the connection for this keyword/prop-map from the cache"

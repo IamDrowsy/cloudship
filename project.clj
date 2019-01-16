@@ -3,7 +3,7 @@
   :url "https://github.com/IamDrowsy/cloudship"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.9.0"]
+  :dependencies [[org.clojure/clojure "1.10.0"]
                  [instaparse "1.4.9"]
                  [semantic-csv "0.2.1-alpha1"]
                  [com.taoensso/timbre "4.10.0"]
