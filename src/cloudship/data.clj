@@ -5,13 +5,22 @@
             [cloudship.client.core :as c]
             [cloudship.client.data.describe :as describe]
             [cloudship.client.data.query :as query]
+            [cloudship.client.data.conversion :as conv]
             [cloudship.spec.data :as data]
             [cloudship.util.result :as result]
             [cloudship.util.misc :as misc]
             [taoensso.timbre :as t]
             [cloudship.util.user-interact :as interact]
             [ebenbild.core :refer [like]]
-            [clojure.spec.alpha :as s]))
+            [clojure.spec.alpha :as s]
+            [clojure.core.protocols :as cp]))
+
+(declare datafy-result-set)
+(declare datafy-row)
+(declare datafy-object-description)
+(declare datafy-object-descriptions)
+(declare datafy-child-relations)
+(declare datafy-child-relation)
 
 (defn describe
   "Returns the global describe data for the given cloudship."
@@ -21,7 +30,9 @@
 (defn describe-objects
   "Returns the describe data for the given cloudship and objects (as list or as varargs)."
   [cloudship & object-names]
-  (p/describe-objects cloudship (misc/normalize-simple-var-args object-names)))
+  (datafy-object-descriptions
+    cloudship
+    (p/describe-objects cloudship (misc/normalize-simple-var-args object-names))))
 
 (defn describe-object
   "Returns the describe data for the given cloudship and a single given object."
@@ -45,7 +56,8 @@
   ([cloudship query-string]
    (query cloudship query-string {}))
   ([cloudship query-string options]
-   (resolved-api-call cloudship p/query query-string options)))
+   (datafy-result-set cloudship
+                      (resolved-api-call cloudship p/query query-string options))))
 (s/fdef query
         :ret (s/coll-of ::data/sObject))
 
@@ -195,3 +207,57 @@
   "Returns the userinfo for a cloudship"
   [cloudship]
   (:user (:data-client (p/info cloudship))))
+
+;; datafy
+(defn- navize-row [cloudship row]
+  (let [object-type (:type row)
+        describe-data (datafy-object-description
+                        cloudship
+                        {:context-id (:Id row)}
+                        (describe-object cloudship object-type))]
+    (with-meta row
+               {`cp/nav (fn [coll k v]
+                          (case k
+                            :type describe-data
+                            (let [field-type (conv/field-type cloudship object-type (name k))]
+                              (if (and (= field-type "reference")
+                                       (not (nil? v)))
+                                (let [target-object (first (describe-id cloudship v))]
+                                  (datafy-row cloudship (first (q cloudship target-object "*" {:where (str "Id = '" v "'")}))))
+                                v))))})))
+
+(defn- datafy-row [cloudship row]
+  (with-meta row
+             {`cp/datafy (partial navize-row cloudship)}))
+
+(defn datafy-result-set [cloudship rs]
+  (mapv (partial datafy-row cloudship) rs))
+
+(defn- navize-object-description [cloudship options object-description]
+  (with-meta object-description
+             {`cp/nav (fn [coll k v]
+                        (case k
+                          :childRelationships
+                          (datafy-child-relations cloudship options v)
+                          v))}))
+
+(defn datafy-object-description [cloudship options object-description]
+  (with-meta object-description
+             {`cp/datafy (partial navize-object-description cloudship options)}))
+
+(defn datafy-object-descriptions [cloudship object-descriptions]
+  (mapv (partial datafy-object-description cloudship {}) object-descriptions))
+
+(defn- navize-child-relations [cloudship {:keys [context-id]} child-relations]
+  (with-meta child-relations
+             {`cp/nav (fn [coll k v]
+                        (if context-id
+                          (let [object-type (:childSObject v)
+                                parent-field (:field v)]
+                            (q cloudship object-type "*"
+                               {:where (str parent-field "='" context-id "'")}))
+                          v))}))
+
+(defn datafy-child-relations [cloudship options child-relations]
+  (with-meta child-relations
+             {`cp/datafy (partial navize-child-relations cloudship options)}))
