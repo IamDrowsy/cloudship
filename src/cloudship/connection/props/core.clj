@@ -27,9 +27,11 @@
                             instance-when-my-domain-and-sandbox))
 
 (defn- base-url [my-domain sandbox instance]
-  (cond (and sandbox my-domain)
+  (cond (and sandbox my-domain instance)
         (str my-domain "--" sandbox ".cs" instance
              ".my.salesforce.com")
+        (and sandbox my-domain)
+        (str my-domain "--" sandbox ".my.salesforce.com")
         sandbox
         (str "test.salesforce.com")
         my-domain
