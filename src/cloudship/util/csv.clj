@@ -82,5 +82,5 @@
    (write-csv file table default-opts))
   ([file table opts]
    (io/make-parents file)
-   (apply (partial spit file (csv-string table opts))
+   (apply (partial spit file (csv-string table (merge (meta table) opts)))
           (map->varargs (merge default-opts opts)))))
