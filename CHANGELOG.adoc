@@ -1,5 +1,14 @@
 = Change Log
 
+## [0.1.2] - 2019-05-13
+* version up on all deps
+* version up to salesforce sdk 46 and default version to 45
+* docstrings for existing meta namespace
+* added ```meta/rename```
+* creating sandbox-url now works without instance
+* reading csv now adds the original col order as metadata
+* added ```util/org-id```
+
 ## [0.1.1] - 2018-10-12
 * replaced dependency on SOQL Parser not hosted on central/clojars with some "good enough" instaparser.
 

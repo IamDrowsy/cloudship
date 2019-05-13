@@ -9,7 +9,7 @@
             [clojure.string :as str]
             [cloudship.connection.props.load :as l]))
 
-(def default-api-version "43.0")
+(def default-api-version "45.0")
 
 (defn- +api-version [props]
   (if (:api-version props)
