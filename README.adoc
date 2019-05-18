@@ -239,7 +239,7 @@ If you need one of them you can directly call the methods you need against the
 
 == License
 
-Copyright © 2018 Albrecht Schmidt
+Copyright © 2019 Albrecht Schmidt
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
