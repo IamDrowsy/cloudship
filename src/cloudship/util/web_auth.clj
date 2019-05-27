@@ -46,9 +46,9 @@
   (str base-url "/services/oauth2/token"))
 
 (defn complete-web-server-flow [request-key code]
-  (let [{:keys [base-url consumer-key callback-url consumer-secret]} (options-for-request request-key)
+  (let [{:keys [url consumer-key callback-url consumer-secret]} (options-for-request request-key)
         optional (if consumer-secret {:client_secret consumer-secret} {})
-        auth-result (http/post (token-url base-url)
+        auth-result (http/post (token-url url)
                                {:form-params (merge {:grant_type   "authorization_code"
                                                      :code         code
                                                      :client_id    consumer-key
