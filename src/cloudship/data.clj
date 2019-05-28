@@ -100,7 +100,7 @@
 (defn insert
   "Insert for given maps.
   All records must have a valid :type.
-  Possible options are: {:partition-size size, :bulk true, :serial true}."
+  Possible options are: {:batch-size size, :bulk true, :serial true}."
  ([cloudship records]
   (insert cloudship records {}))
  ([cloudship records options]
@@ -113,7 +113,7 @@
 (defn update
   "Update for given maps.
   All records must have :Id and a valid :type.
-  Possible options are: {:partition-size size, :bulk true, :serial true}."
+  Possible options are: {:batch-size size, :bulk true, :serial true}."
   ([cloudship records]
    (update cloudship records {}))
   ([cloudship records options]
@@ -127,7 +127,7 @@
   "Upsert for given maps.
   All records must have :Id and a valid :type.
   The :upsert-key option needs to be set, therefor upsert has no arity without options.
-  Other possible options are: {:partition-size size, :bulk true, :serial true}."
+  Other possible options are: {:batch-size size, :bulk true, :serial true}."
   [cloudship records options]
   (if (empty? records)
     (do (t/info "Nothing to upsert") [])
@@ -143,7 +143,7 @@
 (defn delete
   "Deletes the given maps (with ids) or ids.
   If option :dont-ask is not set, asks before deleting records.
-  Other possible option are: {:partition-size size, :bulk true, :serial true}"
+  Other possible option are: {:batch-size size, :bulk true, :serial true}"
   ([cloudship records-or-ids]
    (delete cloudship records-or-ids {}))
   ([cloudship records-or-ids options]
