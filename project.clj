@@ -20,9 +20,9 @@
                  [ebenbild "0.2.0"]
                  [com.rpl/specter "1.1.2"]
                  [clj-http "3.10.0"]
-                 [com.force.api/force-partner-api "46.0.0"]
-                 [com.force.api/force-wsc "46.0.0"]
-                 [com.force.api/force-metadata-api "46.0.0"]]
+                 [com.force.api/force-partner-api "47.0.0"]
+                 [com.force.api/force-wsc "47.0.0"]
+                 [com.force.api/force-metadata-api "47.0.0"]]
 
   :profiles {:dev {:resource-paths ["resources-test"]
                    :dependencies [[org.clojure/test.check "0.10.0-alpha2"]
