@@ -117,7 +117,7 @@
   (doall (mapcat #(read-metadata-parted meta-con meta-describe-client meta-type %1) (partition-all 10 names))))
 
 (defn- update-metadata-parted [^MetadataConnection meta-con metadata]
-  (.updateMetadata meta-con (into-array Metadata (map #(convert/map->obj %) metadata))))
+  (map result-to-map (.updateMetadata meta-con (into-array Metadata (map #(convert/map->obj %) metadata)))))
 
 (defn- update-metadata [meta-con meta-describe-client metadata]
   (doall (mapcat #(update-metadata-parted meta-con %) (partition-all 10 metadata))))
