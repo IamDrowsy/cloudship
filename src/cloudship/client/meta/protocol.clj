@@ -6,7 +6,6 @@
   (read [this meta-describe-client type names])
   (create [this meta-describe-client metadata])
   (update [this meta-describe-client metadata])
-  (upsert [this meta-describe-client metadata])
   (delete [this meta-describe-client metadata])
   (rename [this meta-describe-client type old-name new-name]))
 

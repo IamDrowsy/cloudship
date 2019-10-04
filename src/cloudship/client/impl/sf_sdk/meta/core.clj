@@ -122,6 +122,12 @@
 (defn- update-metadata [meta-con meta-describe-client metadata]
   (doall (mapcat #(update-metadata-parted meta-con %) (partition-all 10 metadata))))
 
+(defn- create-metadata-parted [^MetadataConnection meta-con metadata]
+  (map result-to-map (.createMetadata meta-con (into-array Metadata (map #(convert/map->obj %) metadata)))))
+
+(defn- create-metadata [^MetadataConnection meta-con meta-describe-client metadata]
+  (doall (mapcat #(create-metadata-parted meta-con %) (partition-all 10 metadata))))
+
 (defn- rename-metadata [meta-con meta-describe-client meta-type old-name new-name]
   (try (-> (.renameMetadata meta-con meta-type old-name new-name)
            (result-to-map)
@@ -139,6 +145,8 @@
     (list-metadata this meta-type))
   (read [this meta-describe-client meta-type names]
     (read-metadata this meta-describe-client meta-type names))
+  (create [this meta-describe-client metadata]
+    (create-metadata this meta-describe-client metadata))
   (update [this meta-describe-client metadata]
     (update-metadata this meta-describe-client metadata))
   (rename [this meta-describe-client meta-type old-name new-name]

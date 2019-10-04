@@ -1,4 +1,5 @@
-(ns cloudship.metadata
+(ns ^{:doc "Namespace for the metadata api. This is experimental the returned/taken data might change."}
+  cloudship.metadata
   (:refer-clojure :exclude [read update list])
   (:require [cloudship.client.meta.protocol :as p]
             [cloudship.client.data.protocol :as dp]
@@ -27,12 +28,19 @@
   (p/read cloudship cloudship metadata-type (misc/normalize-simple-var-args metadata-names)))
 
 (defn read-all
-  "Returns the metadat for all metadata entries of the given metadata type."
+  "Returns the metadata for all metadata entries of the given metadata type."
   [cloudship metadata-type]
   (p/read cloudship cloudship metadata-type (list cloudship metadata-type)))
 
-(defn update [cloudship metadata]
+(defn update
+  "Updates the given metadata"
+  [cloudship metadata]
   (p/update cloudship cloudship metadata))
+
+(defn create
+  "Creates the given metadata"
+  [cloudship metadata]
+  (p/create cloudship cloudship metadata))
 
 (defn rename
   "Renames a given metadata.
