@@ -42,6 +42,16 @@
   [cloudship metadata]
   (p/create cloudship cloudship metadata))
 
+(defn delete
+  "Deletes the given metadata"
+  ([cloudship metadata]
+   (p/delete cloudship cloudship metadata))
+  ([cloudship metadata-type metadata-fullnames]
+   (delete cloudship (map (fn [name]
+                            {:metadata-type metadata-type
+                             :FullName name})
+                          metadata-fullnames))))
+
 (defn rename
   "Renames a given metadata.
    you can provide:

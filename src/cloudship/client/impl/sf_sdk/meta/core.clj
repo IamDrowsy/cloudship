@@ -14,7 +14,7 @@
 (def default-namespace "{http://soap.sforce.com/2006/04/metadata}")
 
 (defn- result-to-map
-  "Takes a SaveResult and turns it into a map"
+  "Takes a SaveResult/DeleteResult and turns it into a map"
   [item]
   (jd/from-java item))
 
@@ -116,17 +116,31 @@
 (defn- read-metadata [meta-con meta-describe-client meta-type names]
   (doall (mapcat #(read-metadata-parted meta-con meta-describe-client meta-type %1) (partition-all 10 names))))
 
+(defn- metadata-parts
+  "Partitions metadata into chunks of ten of the same type"
+  [metadata]
+  (->> (partition-by convert/metadata-type-key metadata)
+       (mapcat #(partition-all 10 %))))
+
 (defn- update-metadata-parted [^MetadataConnection meta-con metadata]
-  (map result-to-map (.updateMetadata meta-con (into-array Metadata (map #(convert/map->obj %) metadata)))))
+  (->> metadata
+       (map convert/map->obj)
+       (into-array Metadata)
+       (.updateMetadata meta-con)
+       (map result-to-map)))
 
 (defn- update-metadata [meta-con meta-describe-client metadata]
-  (doall (mapcat #(update-metadata-parted meta-con %) (partition-all 10 metadata))))
+  (doall (mapcat #(update-metadata-parted meta-con %) (metadata-parts metadata))))
 
 (defn- create-metadata-parted [^MetadataConnection meta-con metadata]
-  (map result-to-map (.createMetadata meta-con (into-array Metadata (map #(convert/map->obj %) metadata)))))
+  (->> metadata
+       (map convert/map->obj)
+       (into-array Metadata)
+       (.createMetadata meta-con)
+       (map result-to-map)))
 
 (defn- create-metadata [^MetadataConnection meta-con meta-describe-client metadata]
-  (doall (mapcat #(create-metadata-parted meta-con %) (partition-all 10 metadata))))
+  (doall (mapcat #(create-metadata-parted meta-con %) (metadata-parts metadata))))
 
 (defn- rename-metadata [meta-con meta-describe-client meta-type old-name new-name]
   (try (-> (.renameMetadata meta-con meta-type old-name new-name)
@@ -139,6 +153,16 @@
                            :old old-name
                            :new new-name})))
 
+(defn- delete-metadata-parted
+  [^MetadataConnection meta-con metadata]
+  (let [metadata-type (convert/metadata-type-key (first metadata))
+        metadata-names (map :FullName metadata)]
+    (->> (.deleteMetadata meta-con metadata-type (into-array String metadata-names))
+         (map result-to-map))))
+
+(defn- delete-metadata [^MetadataConnection meta-con meta-describe-client metadata]
+  (doall (mapcat #(delete-metadata-parted meta-con %) (metadata-parts metadata))))
+
 (extend-protocol MetadataClient
   MetadataConnection
   (list [this meta-describe-client meta-type]
@@ -149,5 +173,7 @@
     (create-metadata this meta-describe-client metadata))
   (update [this meta-describe-client metadata]
     (update-metadata this meta-describe-client metadata))
+  (delete [this meta-describe-client metadata]
+    (delete-metadata this meta-describe-client metadata))
   (rename [this meta-describe-client meta-type old-name new-name]
     (rename-metadata this meta-describe-client meta-type old-name new-name)))
