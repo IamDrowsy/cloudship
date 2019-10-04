@@ -1,5 +1,14 @@
 = Change Log
 
+## [0.1.3] - 2019-10-04
+* version up on all deps
+* version up to salesforce sdk 47 and default version to 47
+* fixed bug with WebAuth url option
+* fixed doc string about batch-size in dml operations
+* metadata api save result now calls convert/map->obj on the result
+* changed metadata type keys from :internalType and :enumType to :metadata-type and :enum-type
+* added ```meta/create```
+
 ## [0.1.2] - 2019-05-13
 * version up on all deps
 * version up to salesforce sdk 46 and default version to 45
