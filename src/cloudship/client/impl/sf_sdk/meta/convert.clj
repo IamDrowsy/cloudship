@@ -6,6 +6,16 @@
            [com.sforce.ws.bind XMLizable]
            [com.sforce.soap.metadata Metadata WebLink CustomField]))
 
+(def metadata-type-namespace "com.sforce.soap.metadata.")
+(def metadata-type-key :metadata-type)
+(def enum-type-key :enum-type)
+
+(defn type->name [type]
+  (last (str/split (str type) #"\.")))
+
+(defn name->type [name]
+  (str metadata-type-namespace name))
+
 (defn find-fields [o]
   (if (nil? o)
     (do (println "got nil in find fields") #{})
@@ -114,11 +124,11 @@
                           (assoc m (keyword f)  (into [] (map obj->map x)))
                           (enum? x)
                           (assoc m (keyword f)
-                                   {:enumType (type x)
+                                   {enum-type-key (type->name (type x))
                                     :value (str x)})
                           :else
                           (assoc m (keyword f) x))))
-                {:internalType (type o)}
+                {metadata-type-key (type->name (type o))}
                 fields)
         o))))
 
@@ -150,13 +160,13 @@
     val))
 
 (defn construct [name & args]
-  (Reflector/invokeConstructor (r/class-of name) (into-array Object args)))
+  (Reflector/invokeConstructor (r/class-of (name->type name)) (into-array Object args)))
 
 (defn sanatize-enum-name [s]
   (str/replace s \- \_))
 
 (defn construct-enum [name val]
-  (Reflector/invokeStaticMethod (r/class-of name) "valueOf" #^"[Ljava.lang.Object;" (into-array Object [(sanatize-enum-name val)])))
+  (Reflector/invokeStaticMethod (r/class-of (name->type name)) "valueOf" #^"[Ljava.lang.Object;" (into-array Object [(sanatize-enum-name val)])))
 
 (defn clean-up-map [m]
   (reduce (fn [m [k v]]
@@ -167,15 +177,15 @@
           m))
 
 (defn map->obj [m]
-  (cond (and (map? m) (:internalType m))
-        (let [obj (construct (:internalType m))]
+  (cond (and (map? m) (metadata-type-key m))
+        (let [obj (construct (metadata-type-key m))]
           (dorun
-            (for [k (keys (clean-up-map (dissoc m :internalType)))]
+            (for [k (keys (clean-up-map (dissoc m metadata-type-key)))]
               (setField obj (name k) (field-type-cast obj (name k)
                                                       (map->obj (k m))))))
           obj)
-        (and (map? m) (:enumType m))
-        (construct-enum (:enumType m) (:value m))
+        (and (map? m) (enum-type-key m))
+        (construct-enum (enum-type-key m) (:value m))
         (vector? m)
         (into [] (map map->obj m))
         :else
