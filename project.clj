@@ -20,6 +20,8 @@
                  [ebenbild "0.2.0"]
                  [com.rpl/specter "1.1.2"]
                  [clj-http "3.10.0"]
+                 [datascript "0.18.6"]
+                 [meander/epsilon "0.0.258"]
                  [com.force.api/force-partner-api "47.0.0"]
                  [com.force.api/force-wsc "47.0.0"]
                  [com.force.api/force-metadata-api "47.0.0"]]
