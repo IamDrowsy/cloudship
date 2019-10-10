@@ -74,6 +74,14 @@
    Options are {:where  WhereString, :in [infield idset] :all true (query-all)
                 :limit limitnumber :bulk true}
    If the idset of :in is too big and results in a too long query, it will automaticly split the query and concat the results again."
+  ([cloudship vec-or-map]
+   (cond (map? vec-or-map)
+         (let [{:keys [object field-or-fields options]} (merge {:options {} :field-or-fields "*"}
+                                                               vec-or-map)]
+           [object field-or-fields options]
+           (q cloudship object field-or-fields options))
+         (vector? vec-or-map)
+         (q cloudship (zipmap [:object :field-or-fields :options] vec-or-map))))
   ([cloudship object field-or-fields]
    (q cloudship object field-or-fields {}))
   ([cloudship object field-or-fields {:keys [in all] :as options}]
