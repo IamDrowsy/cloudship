@@ -3,7 +3,6 @@
             [cloudship.client.data.protocol :as base :refer [BaseClient]]
             [cloudship.client.meta.protocol :as p :refer [MetadataClient MetadataDescribeClient]]
             [cloudship.client.impl.sf-sdk.meta.convert :as convert]
-            [cloudship.util.java-data-extension]
             [clojure.java.data :as jd]
             [taoensso.timbre :as t]
             [clojure.set :as set])

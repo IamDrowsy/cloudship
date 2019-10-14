@@ -4,7 +4,6 @@
             [cloudship.client.data.protocol :refer [DataClient]]
             [cloudship.client.impl.sf-sdk.data.coerce :as coerce]
             [cloudship.client.impl.sf-sdk.data.bulk :as bulk]
-            [cloudship.util.java-data-extension]
             [clojure.string :as str]
             [clojure.java.data :as jd])
   (:import (com.sforce.soap.partner PartnerConnection QueryResult)
