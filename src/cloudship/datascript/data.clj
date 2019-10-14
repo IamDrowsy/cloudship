@@ -27,6 +27,13 @@
          [?f :field/type "reference"]]
        @describe-db))
 
+(defn simple-field-keys [describe-db]
+  (d/q '[:find [?key ...]
+         :where
+         [?f :field/key ?key]
+         (not [?f :field/type "reference"])]
+       @describe-db))
+
 (defn generate-schema [describe-db]
   (let [ref-field-schema (zipmap (sobject-field-keys describe-db)
                                  (repeat {:db/valueType :db.type/ref}))]
@@ -67,11 +74,12 @@
 
 (defn pull-sobject [db id]
   (let [ref-pull (zipmap (sobject-field-keys db)
-                         (repeat [:sobject/Id]))]
-    (->> (d/pull @db ["*" ref-pull] id)
+                         (repeat [:sobject/Id]))
+        field-pull (into [] (simple-field-keys db))]
+    (->> (d/pull @db (into field-pull [:db/id :sobject/Id :sobject/type ref-pull]) id)
          (transform [MAP-VALS map? #(contains? % :sobject/Id) (collect-one :sobject/Id)] (fn [id _] id))
-         (setval [:db/id] NONE)
-         (transform [MAP-KEYS] #(keyword (name %))))))
+         #_(setval [:db/id] NONE)
+         (transform [MAP-KEYS #(not= % :db/id)] #(keyword (name %))))))
 
 (defn pull-sobjects [db]
   (let [ids (d/q '[:find [?id ...]
