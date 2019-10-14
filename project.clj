@@ -10,7 +10,7 @@
                  [expound "0.7.2"]
                  [de.slackspace/openkeepass "0.8.2"]
                  [org.clojure/data.json "0.2.6"]
-                 [org.clojure/java.data "0.1.1"]
+                 [org.clojure/java.data "0.1.4"]
                  [clojure.java-time "0.3.2"]
                  [org.clojure/core.cache "0.8.2"]
                  [com.taoensso/nippy "2.14.0"]
