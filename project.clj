@@ -1,4 +1,4 @@
-(defproject cloudship "0.1.3-SNAPSHOT"
+(defproject cloudship "0.2.1-SNAPSHOT"
   :description "cloudship is a clojure toolkit to explore and manipulate your salesforce instances"
   :url "https://github.com/IamDrowsy/cloudship"
   :license {:name "Eclipse Public License"
@@ -18,7 +18,7 @@
                  [ring "1.7.1"]
                  [cheshire "5.9.0"]
                  [ebenbild "0.2.0"]
-                 [com.rpl/specter "1.1.2"]
+                 [com.rpl/specter "1.1.3"]
                  [clj-http "3.10.0"]
                  [datascript "0.18.6"]
                  [com.force.api/force-partner-api "47.0.0"]
