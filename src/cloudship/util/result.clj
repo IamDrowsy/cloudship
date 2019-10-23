@@ -5,13 +5,16 @@
 
 
 (defn- aggregate-results
-  "aggregates a flattend list of results. Returns a map with {:success SuccessCount :errors [list of errors]}"
+  "aggregates a flattend list of results. Returns a map with {:success SuccessCount :error-count ErrorCount :errors [list of errors]}"
   [result-list]
   (reduce (fn [result item]
             (if (:success item)
               (update result :success inc)
-              (update result :errors into (:errors item))))
+              (-> result
+                  (update :error-count inc)
+                  (update :errors into (:errors item)))))
           {:success 0
+           :error-count 0
            :errors []}
           result-list))
 
@@ -30,7 +33,7 @@
   "Aggregates and prints out a list of results. Returns the original list."
   [results]
   (let [examined (aggregate-results results)]
-    (t/info "Success: " (:success examined) ", Errors: " (count (:errors examined)))
+    (t/info "Success: " (:success examined) ", Errors: " (:error-count examined))
     (if (not (empty? (:errors examined)))
       (do (t/info "Errors:")
           (t/info (error-count-map (:errors examined))))))
