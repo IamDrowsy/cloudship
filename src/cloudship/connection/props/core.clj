@@ -65,9 +65,11 @@
         (update :username #(str % "." (name sandbox))))
     props))
 
-(defn- +proxy [{:keys [url] :as props}]
-  (if-let [default-proxy (proxy/find-default-proxy url)]
-    (update props :proxy merge default-proxy)
+(defn- +proxy [{:keys [url proxy] :as props}]
+  (if (nil? proxy)
+    (if-let [default-proxy (proxy/find-default-proxy url)]
+      (assoc props :proxy default-proxy)
+      props)
     props))
 
 

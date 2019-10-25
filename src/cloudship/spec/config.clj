@@ -14,7 +14,8 @@
 
 (s/def ::host string?)
 (s/def ::port int?)
-(s/def ::proxy (s/keys :req-un [::host ::port]))
+(s/def ::proxy (s/or :explicite-false false?
+                     :proxy-set (s/keys :req-un [::host ::port])))
 
 (s/def ::raw-api-version (s/or :int (s/and int? pos?)
                                :float (s/and float? pos?)
