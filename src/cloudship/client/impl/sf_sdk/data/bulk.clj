@@ -63,11 +63,11 @@
                        (- (.getNumberRecordsProcessed jobinfo) (.getNumberRecordsFailed jobinfo))
                        (.getNumberRecordsFailed jobinfo)])))
 
-(defn- ^JobInfo create-job [^BulkConnection bulk-con {:keys [object op id-field serial] :as job-info}]
+(defn- ^JobInfo create-job [^BulkConnection bulk-con {:keys [object op id-field bulk-serial] :as job-info}]
   (let [ji (JobInfo.)]
     (if (= op :upsert)
       (.setExternalIdFieldName ji (name id-field)))
-    (if serial
+    (if bulk-serial
       (.setConcurrencyMode ji (ConcurrencyMode/Serial)))
     (doto ji
       (.setObject object)

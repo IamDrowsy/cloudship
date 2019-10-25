@@ -75,13 +75,14 @@
           (do (t/warn error " is not a known error type")
               {}))))
 
-(defn- soap-action* [client action type inputs {:keys [batch-size] :or {batch-size 200}}]
-  (map result-to-map
-       (apply concat
-              (doall
-                (map
-                  (comp (partial action client) #(into-array type %))
-                  (partition-all batch-size inputs))))))
+(defn- soap-action* [client action type inputs {:keys [batch-size soap-parallel] :or {batch-size 200}}]
+  (let [mapfn (if soap-parallel pmap map)]
+    (map result-to-map
+         (apply concat
+                (doall
+                  (mapfn
+                    (comp (partial action client) #(into-array type %))
+                    (partition-all batch-size inputs)))))))
 
 (defn- insert*
   "Internal. Like insert but takes sobjects"
