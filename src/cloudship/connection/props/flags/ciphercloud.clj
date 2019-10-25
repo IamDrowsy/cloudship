@@ -25,4 +25,6 @@
 (defn resolve-cc-flag []
   (fn [{:keys [cc-domain cc-alias sandbox] :as con-props}]
     (u/assert-input ::prop-before-cc con-props)
-    (update con-props :url (partial change-to-cc-url cc-domain cc-alias sandbox))))
+    (cond-> con-props
+            true (update :url (partial change-to-cc-url cc-domain cc-alias sandbox))
+            (contains? con-props :cc-proxy) (assoc :proxy (:cc-proxy con-props)))))
