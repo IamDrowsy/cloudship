@@ -5,7 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.10.1"]
                  [instaparse "1.4.10"]
-                 [semantic-csv "0.2.1-alpha1"]
+                 [semantic-csv "0.2.1-alpha1" :exclusions [[org.clojure/clojurescript]]]
                  [com.taoensso/timbre "4.10.0"]
                  [expound "0.7.2"]
                  [de.slackspace/openkeepass "0.8.2"]

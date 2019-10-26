@@ -13,7 +13,10 @@
             [cloudship.util.user-interact :as interact]
             [ebenbild.core :refer [like]]
             [clojure.spec.alpha :as s]
-            [clojure.core.protocols :as cp]))
+            [clojure.core.protocols :as cp]
+            [clojure.string :as str]
+            [com.rpl.specter :refer :all])
+  (:import (java.net URL)))
 
 (declare datafy-result-set)
 (declare datafy-row)
@@ -208,6 +211,9 @@
   [cloudship]
   (:user (:data-client (p/info cloudship))))
 
+(defn pull-all-data [cloudship row]
+  (datafy-row cloudship (setval [MAP-VALS nil?] NONE (first (q cloudship (:type row) "*" {:in [:Id [(:Id row)]]})))))
+
 ;; datafy
 (defn- navize-row [cloudship row]
   (let [object-type (:type row)
@@ -217,17 +223,29 @@
                         (describe-object cloudship object-type))]
     (with-meta row
                {`cp/nav (fn [coll k v]
-                          (case k
-                            :type describe-data
-                            (let [field-type (conv/field-type cloudship object-type (name k))]
-                              (if (and (= field-type "reference")
-                                       (not (nil? v)))
-                                (let [target-object (first (describe-id cloudship v))]
-                                  (datafy-row cloudship (first (q cloudship target-object "*" {:where (str "Id = '" v "'")}))))
-                                v))))})))
+                          (let [describe-data (transform [MAP-VALS seq?] vec (describe-object cloudship (:type coll)))]
+                            (case k
+                              :type (datafy-object-description cloudship {:context-id (:Id row)} describe-data)
+                              :cloudship/describe-data (datafy-object-description cloudship {:context-id (:Id row)} describe-data)
+                              :cloudship/all-data (pull-all-data cloudship row)
+                              :cloudship/link (URL. (str/replace (:urlDetail describe-data) #"\{ID\}" (:Id coll)))
+                              :cloudship/children (datafy-child-relations cloudship {:context-id (:Id row)}
+                                                                          (mapv #(select-keys % [:field :relationshipName :childSObject]) (:childRelationships describe-data)))
+                              (let [field-type (conv/field-type cloudship object-type (name k))]
+                                (if (and (= field-type "reference")
+                                         (not (nil? v)))
+                                  (let [target-object (first (describe-id cloudship v))]
+                                    (pull-all-data cloudship {:type target-object :Id v}))
+                                  v)))))})))
+
+(defn special-keys [row]
+  #:cloudship{:link :nav-to-pull
+              :children :nav-to-pull
+              :describe-data (:type row)
+              :all-data :nav-to-pull})
 
 (defn- datafy-row [cloudship row]
-  (with-meta row
+  (with-meta (merge row (special-keys row))
              {`cp/datafy (partial navize-row cloudship)}))
 
 (defn datafy-result-set [cloudship rs]
