@@ -59,8 +59,9 @@
   ([cloudship query-string]
    (query cloudship query-string {}))
   ([cloudship query-string options]
-   (datafy-result-set cloudship
-                      (resolved-api-call cloudship p/query query-string options))))
+   (cond-> (resolved-api-call cloudship p/query query-string options)
+           (:datafy options) (partial datafy-result-set cloudship))))
+
 (s/fdef query
         :ret (s/coll-of ::data/sObject))
 
