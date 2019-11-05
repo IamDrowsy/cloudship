@@ -60,7 +60,7 @@
    (query cloudship query-string {}))
   ([cloudship query-string options]
    (cond-> (resolved-api-call cloudship p/query query-string options)
-           (:datafy options) (partial datafy-result-set cloudship))))
+           (:datafy options) ((partial datafy-result-set cloudship)))))
 
 (s/fdef query
         :ret (s/coll-of ::data/sObject))
@@ -273,8 +273,9 @@
                         (if context-id
                           (let [object-type (:childSObject v)
                                 parent-field (:field v)]
-                            (q cloudship object-type "*"
-                               {:where (str parent-field "='" context-id "'")}))
+                            (into [] (q cloudship object-type [:Id]
+                                        {:where (str parent-field "='" context-id "'")
+                                         :datafy true})))
                           v))}))
 
 (defn datafy-child-relations [cloudship options child-relations]
