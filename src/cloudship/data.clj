@@ -105,8 +105,8 @@
 
 Options are:
 
-   ...| key      | vals          | description | example |
-   ...| -------- | --------------|-------------|---------|
+   | key      | vals          | description | example |
+   | -------- | --------------|-------------|---------|
    | `:where` | whereString   | where string of a soql query | `Name LIKE '%Test%'`
    | `:in`    | [infield vals]| field and list of val for an in query | `[:Id [\"A\" \"B\"]]` result in `Id IN ('A', 'B')`
    | `:all`   | true/false    | uses query all (includes deleted records), default: false |  |

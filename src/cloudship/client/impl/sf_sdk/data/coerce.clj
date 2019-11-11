@@ -18,11 +18,13 @@
     (reduce (fn [m field]
               (let [inner-query? (and (.getXmlType field) (= "QueryResult" (.getLocalPart (.getXmlType field))))
                     nested-childs? (not (empty? (iterator-seq (.getChildren field))))
+                    aggregate-result? (= obj-name "AggregateResult")
                     fieldname (.getLocalPart (.getName field))]
                 (cond inner-query? (assoc m (keyword fieldname)
                                             (mapv (partial sobj->map data-describe-client)
                                                   (extract-inner-query field)))
                       nested-childs? (assoc m (keyword fieldname) (sobj->map data-describe-client field))
+                      aggregate-result? (assoc m (keyword fieldname) (.getValue field))
                       :else
                       (assoc m (keyword fieldname)
                                (if (or (nil? obj-name) (= "type" fieldname))
