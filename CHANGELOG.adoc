@@ -1,5 +1,10 @@
 = Change Log
 
+## [0.2.1] - 2019-11-12
+* Experimental datafy support. Use `{:datafy true}` option of `q`
+* Fixed NPE in `count/records`
+* Nicer docstrings
+
 ## [0.2.0] - 2019-10-14
 * *[Breaking] changed metadata type keys from ```:internalType``` and ```:enumType``` to ```:metadata-type``` and ```:enum-type```*
 * *[Breaking] changed metadata type vals to simple strings (as for sobjects)*

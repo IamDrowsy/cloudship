@@ -1,4 +1,4 @@
-(defproject cloudship "0.2.1-SNAPSHOT"
+(defproject cloudship "0.2.1"
   :description "cloudship is a clojure toolkit to explore and manipulate your salesforce instances"
   :url "https://github.com/IamDrowsy/cloudship"
   :license {:name "Eclipse Public License"
