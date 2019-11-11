@@ -1,6 +1,5 @@
 (ns ^:no-doc cloudship.client.data.query
-  (:require [clojure.java.data :as jd]
-            [cloudship.client.data.describe :as describe]
+  (:require [cloudship.client.data.describe :as describe]
             [ebenbild.core :refer [like]]
             [clojure.string :as str]
             [instaparse.core :as insta]))
