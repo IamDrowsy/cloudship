@@ -145,10 +145,10 @@ Options are:
   Options are:
   | key         | vals        | description |
   | ------------| ----------- | ------------|
-  | :batch-size | int         | Batch size for soap and bulk calls
-  | :bulk       | true/false  | uses bulk api
-  | :soap-parallel | true/false | simple pmap for inserts via soap (no effect in bulk)
-  | :bulk-serial   | true/false | serial mode for bulk (no effect in soap)
+  | `:batch-size` | int         | Batch size for soap and bulk calls
+  | `:bulk`     | true/false  | uses bulk api
+  | `:soap-parallel` | true/false | simple pmap for inserts via soap (no effect in bulk)
+  | `:bulk-serial`  | true/false | serial mode for bulk (no effect in soap)
   "
  ([cloudship records]
   (insert cloudship records {}))
@@ -166,10 +166,10 @@ Options are:
   Options are:
   | key         | vals        | description |
   | ------------| ----------- | ------------|
-  | :batch-size | int         | Batch size for soap and bulk calls
-  | :bulk       | true/false  | uses bulk api
-  | :soap-parallel | true/false | simple pmap for inserts via soap (no effect in bulk)
-  | :bulk-serial   | true/false | serial mode for bulk (no effect in soap)
+  | `:batch-size` | int         | Batch size for soap and bulk calls
+  | `:bulk`     | true/false  | uses bulk api
+  | `:soap-parallel` | true/false | simple pmap for inserts via soap (no effect in bulk)
+  | `:bulk-serial`  | true/false | serial mode for bulk (no effect in soap)
   "
   ([cloudship records]
    (update cloudship records {}))
@@ -187,11 +187,11 @@ Options are:
   Options are:
   | key         | vals        | description |
   | ------------| ----------- | ------------|
-  | :upsert-key | keyword     | field to use for upsert lookup
-  | :batch-size | int         | Batch size for soap and bulk calls
-  | :bulk       | true/false  | uses bulk api
-  | :soap-parallel | true/false | simple pmap for inserts via soap (no effect in bulk)
-  | :bulk-serial   | true/false | serial mode for bulk (no effect in soap)
+  | `:upsert-key` | keyword     | field to use for upsert lookup
+  | `:batch-size` | int         | Batch size for soap and bulk calls
+  | `:bulk`       | true/false  | uses bulk api
+  | `:soap-parallel` | true/false | simple pmap for inserts via soap (no effect in bulk)
+  | `:bulk-serial`  | true/false | serial mode for bulk (no effect in soap)
   "
   [cloudship records options]
   (if (empty? records)
@@ -212,11 +212,11 @@ Options are:
   Options are:
   | key         | vals        | description |
   | ------------| ----------- | ------------|
-  | :dont-ask   | true/false  | skips asking for permission
-  | :batch-size | int         | Batch size for soap and bulk calls
-  | :bulk       | true/false  | uses bulk api
-  | :soap-parallel | true/false | simple pmap for inserts via soap (no effect in bulk)
-  | :bulk-serial   | true/false | serial mode for bulk (no effect in soap)
+  | `:dont-ask`   | true/false  | skips asking for permission
+  | `:batch-size` | int         | Batch size for soap and bulk calls
+  | `:bulk`     | true/false  | uses bulk api
+  | `:soap-parallel` | true/false | simple pmap for inserts via soap (no effect in bulk)
+  | `:bulk-serial`  | true/false | serial mode for bulk (no effect in soap)
   "
   ([cloudship records-or-ids]
    (delete cloudship records-or-ids {}))
