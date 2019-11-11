@@ -6,6 +6,7 @@
             [cloudship.client.data.describe :as describe]
             [cloudship.client.data.query :as query]
             [cloudship.client.data.conversion :as conv]
+            [cloudship.client.data.datafy :as datafy]
             [cloudship.spec.data :as data]
             [cloudship.util.result :as result]
             [cloudship.util.misc :as misc]
@@ -18,12 +19,7 @@
             [com.rpl.specter :refer :all])
   (:import (java.net URL)))
 
-(declare datafy-result-set)
-(declare datafy-row)
-(declare datafy-object-description)
-(declare datafy-object-descriptions)
-(declare datafy-child-relations)
-(declare datafy-child-relation)
+(declare q)
 
 (defn describe
   "Returns the global describe data for the given cloudship."
@@ -33,14 +29,19 @@
 (defn describe-objects
   "Returns the describe data for the given cloudship and objects (as list or as varargs)."
   [cloudship & object-names]
-  (datafy-object-descriptions
+  (datafy/datafy-object-descriptions
     cloudship
+    q
     (p/describe-objects cloudship (misc/normalize-simple-var-args object-names))))
 
 (defn describe-object
   "Returns the describe data for the given cloudship and a single given object."
   [cloudship object-name]
-  (describe/describe-object cloudship object-name))
+  (datafy/datafy-object-description
+    cloudship
+    q
+    {}
+    (describe/describe-object cloudship object-name)))
 
 (defn describe-id
   "Returns the Objectnames for the given cloudship and salesforce id(-prefix).
@@ -53,14 +54,30 @@
 (defn- resolved-api-call [client-description api-call & other-args]
   (apply (partial api-call client-description client-description) other-args))
 
+(defn datafy-results
+  "EXPERIMENTAL.
+
+  Adds implementation for datafy to a result of [[q]].
+  Also adds navigatable special keys to all records.
+
+  | key              | description |
+  |------------------| ------------|
+  | `:cloudship/link`| navigates to the url of this record
+  | `:cloudship/children` | navigates to the describe data of all child refs. From there you can navigate to all child records.
+  | `:cloudship/describe-data` | navigates to the describe data of this type
+  | `:cloudship/all-data` | navigates to the same record but queries all fields
+  "
+  [cloudship rs]
+  (mapv (partial datafy/datafy-row cloudship q) rs))
+
 (defn query
-  "Returns the result of this SOQL query-string for the given cloudship.
-  Have a look at 'q' for a more structured way to query."
+  "Returns the result of this SOQL `query-string` for the given `cloudship`.
+  Have a look at [[q]] for a more structured way to query."
   ([cloudship query-string]
    (query cloudship query-string {}))
   ([cloudship query-string options]
    (cond-> (resolved-api-call cloudship p/query query-string options)
-           (:datafy options) ((partial datafy-result-set cloudship)))))
+           (:datafy options) ((partial datafy-results cloudship)))))
 
 (s/fdef query
         :ret (s/coll-of ::data/sObject))
@@ -71,8 +88,6 @@
 
 (defn- in-query-too-long? [in query-string]
   (and in (> (count query-string) 15000)))
-
-(declare q)
 
 (defn- split-up-in-query [con object field-or-fields options]
   (let [[in-field in-ids] (:in options)]
@@ -211,73 +226,3 @@
   "Returns the userinfo for a cloudship"
   [cloudship]
   (:user (:data-client (p/info cloudship))))
-
-(defn pull-all-data [cloudship row]
-  (datafy-row cloudship (setval [MAP-VALS nil?] NONE (first (q cloudship (:type row) "*" {:in [:Id [(:Id row)]]})))))
-
-;; datafy
-(defn- navize-row [cloudship row]
-  (let [object-type (:type row)
-        describe-data (datafy-object-description
-                        cloudship
-                        {:context-id (:Id row)}
-                        (describe-object cloudship object-type))]
-    (with-meta row
-               {`cp/nav (fn [coll k v]
-                          (let [describe-data (transform [MAP-VALS seq?] vec (describe-object cloudship (:type coll)))]
-                            (case k
-                              :type (datafy-object-description cloudship {:context-id (:Id row)} describe-data)
-                              :cloudship/describe-data (datafy-object-description cloudship {:context-id (:Id row)} describe-data)
-                              :cloudship/all-data (pull-all-data cloudship row)
-                              :cloudship/link (URL. (str/replace (:urlDetail describe-data) #"\{ID\}" (:Id coll)))
-                              :cloudship/children (datafy-child-relations cloudship {:context-id (:Id row)}
-                                                                          (mapv #(select-keys % [:field :relationshipName :childSObject]) (:childRelationships describe-data)))
-                              (let [field-type (conv/field-type cloudship object-type (name k))]
-                                (if (and (= field-type "reference")
-                                         (not (nil? v)))
-                                  (let [target-object (first (describe-id cloudship v))]
-                                    (pull-all-data cloudship {:type target-object :Id v}))
-                                  v)))))})))
-
-(defn special-keys [row]
-  #:cloudship{:link :nav-to-pull
-              :children :nav-to-pull
-              :describe-data (:type row)
-              :all-data :nav-to-pull})
-
-(defn- datafy-row [cloudship row]
-  (with-meta (merge row (special-keys row))
-             {`cp/datafy (partial navize-row cloudship)}))
-
-(defn datafy-result-set [cloudship rs]
-  (mapv (partial datafy-row cloudship) rs))
-
-(defn- navize-object-description [cloudship options object-description]
-  (with-meta object-description
-             {`cp/nav (fn [coll k v]
-                        (case k
-                          :childRelationships
-                          (datafy-child-relations cloudship options v)
-                          v))}))
-
-(defn datafy-object-description [cloudship options object-description]
-  (with-meta object-description
-             {`cp/datafy (partial navize-object-description cloudship options)}))
-
-(defn datafy-object-descriptions [cloudship object-descriptions]
-  (mapv (partial datafy-object-description cloudship {}) object-descriptions))
-
-(defn- navize-child-relations [cloudship {:keys [context-id]} child-relations]
-  (with-meta child-relations
-             {`cp/nav (fn [coll k v]
-                        (if context-id
-                          (let [object-type (:childSObject v)
-                                parent-field (:field v)]
-                            (into [] (q cloudship object-type [:Id]
-                                        {:where (str parent-field "='" context-id "'")
-                                         :datafy true})))
-                          v))}))
-
-(defn datafy-child-relations [cloudship options child-relations]
-  (with-meta child-relations
-             {`cp/datafy (partial navize-child-relations cloudship options)}))
