@@ -2,8 +2,14 @@
   ^:no-doc
   cloudship.client.impl.sf-sdk.util.reflect
   (:require [clojure.reflect :as r]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.java.data :as jd]
+            [com.rpl.specter :refer :all])
   (:import (clojure.lang Named)))
+
+(def package-mappings
+  {:partner "com.sforce.soap.partner"
+   :meta "com.sforce.soap.metadata"})
 
 (defn primitive? [^String name]
   (not (.contains name ".")))
@@ -33,6 +39,10 @@
         :else
         (throw (IllegalArgumentException.
                  (str "unkown type " (type class-or-name) " to get class for " class-or-name)))))
+
+(defn ^Object map->obj [package m]
+  (let [t (str (or (package-mappings package) package) "." (:type m))]
+    (jd/to-java (class-of t) m)))
 
 
 (defn transitive-reflect-members [o]

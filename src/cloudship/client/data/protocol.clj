@@ -11,7 +11,8 @@
   (upsert [this describe-client records options])
   (delete [this describe-client ids options])
   (undelete [this describe-client ids options])
-  (remove-from-bin [this describe-client ids options]))
+  (remove-from-bin [this describe-client ids options])
+  (process [this describe-client ids]))
 
 (defprotocol DataDescribeClient
   (describe-global [this])

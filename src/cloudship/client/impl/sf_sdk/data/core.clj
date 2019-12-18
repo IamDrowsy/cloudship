@@ -4,9 +4,12 @@
             [cloudship.client.data.protocol :refer [DataClient]]
             [cloudship.client.impl.sf-sdk.data.coerce :as coerce]
             [cloudship.client.impl.sf-sdk.data.bulk :as bulk]
+            [cloudship.client.impl.sf-sdk.util.reflect :as reflect]
             [clojure.string :as str]
+            [ebenbild.core :as e]
+            [com.rpl.specter :refer :all]
             [clojure.java.data :as jd])
-  (:import (com.sforce.soap.partner PartnerConnection QueryResult)
+  (:import (com.sforce.soap.partner PartnerConnection QueryResult ProcessRequest)
            (com.sforce.soap.partner.fault MalformedQueryFault)
            (java.util Map)
            (com.sforce.soap.partner.sobject SObject)))
@@ -148,3 +151,21 @@ Parallel will just use 10 soap cons so be aware of row locks."
    (remove-from-bin client ids {}))
   ([client ids options]
    (soap-action* client #(.emptyRecycleBin ^PartnerConnection %1 %2) String ids options)))
+
+(defn- fix-workitem-request
+  "For ProcessWorkitemRequest the action must be 'Removed' instead of 'Remove' (which is documented). We fix this here."
+  [workitem-request]
+  (setval [ALL (e/like {:type "ProcessWorkitemRequest"}) :action (pred= "Remove")] "Removed" workitem-request))
+
+(defn- to-lower-keys [m]
+  (transform [ALL MAP-KEYS NAME (regex-nav #"^.")] str/lower-case m))
+
+
+(defn process*
+  [client records]
+  (soap-action* client #(.process ^PartnerConnection %1 %2) ProcessRequest records {}))
+
+(defn process
+  [client records]
+  (process* client (map (partial reflect/map->obj :partner) (fix-workitem-request (to-lower-keys records)))))
+

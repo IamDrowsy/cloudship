@@ -84,5 +84,7 @@
   (undelete [this describe-client ids options]
     (impl/undelete this ids options))
   (remove-from-bin [this describe-client ids options]
-    (impl/remove-from-bin this ids options)))
+    (impl/remove-from-bin this ids options))
+  (process [this describe-client records]
+    (impl/process this records)))
 

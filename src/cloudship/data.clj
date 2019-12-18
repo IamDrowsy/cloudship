@@ -270,3 +270,8 @@ Options are:
   "Returns the userinfo for a cloudship"
   [cloudship]
   (:user (:data-client (p/info cloudship))))
+
+(defn process
+  "Processes 'ProcessSubmitRequest' or 'ProcessWorkitemRequest'"
+  [cloudship records]
+  (resolved-crud-call cloudship p/process records))
