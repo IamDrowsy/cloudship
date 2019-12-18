@@ -114,6 +114,7 @@
 (defmethod string->cloudship-fn* "anytype" [type] identity)
 (defmethod string->cloudship-fn* "complexvalue" [type] identity)
 (defmethod string->cloudship-fn* "url" [type] identity)
+(defmethod string->cloudship-fn* "time" [type] identity)
 
 (defmulti cloudship->string-fn*
   (fn [field-type] (str/lower-case field-type)))
