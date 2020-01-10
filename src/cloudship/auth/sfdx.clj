@@ -18,7 +18,7 @@
 
 (defn- sfdx-auth [{:keys [org username]}]
   (let [opts {:u (if username username (name org))}]
-    (t/info "Calling sfdx :force:org:display -u" (:u opts))
+    (t/info "Calling sfdx force:org:display -u" (:u opts))
     (->> (sfdx/run-sfdx-command :force:org:display opts)
          (session+url))))
 

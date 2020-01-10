@@ -8,6 +8,7 @@
             [cloudship.client.impl.mem.meta-describe :as mmd]
             [cloudship.client.impl.sf-sdk.data.init :as data]
             [cloudship.client.impl.sf-sdk.meta.core :as meta]
+            [cloudship.client.impl.generic-xml.init :as generic]
             [clojure.core.cache :as cache :refer [has? miss hit lookup evict]]
             [taoensso.timbre :as t]
             [clojure.pprint :as pp])
@@ -45,9 +46,10 @@
     (t/info "Initializing new connection without :cache-name"))
   (t/info (str "Connection data is: \n" (with-out-str (pp/pprint (select-keys config [:proxy :username :url :api-version])))))
   (let [authed-config (auth/auth config)
+        generic-client (generic/->generic-client authed-config)
         partner-con (data/->partner-connection authed-config)
         meta-con (meta/->metadata-connection partner-con)]
-    (->CloudshipClient (md/memoize-describe-client partner-con)
+    (->CloudshipClient (md/memoize-describe-client generic-client)
                        partner-con
                        (mmd/memoize-describe-client meta-con)
                        meta-con)))
