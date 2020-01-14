@@ -1,7 +1,7 @@
-(ns cloudship.client.impl.generic-xml.init
+(ns cloudship.client.impl.generic-soap.init
   (:require [clojure.string :as str]
-            [cloudship.client.impl.generic-xml.core :as impl]
-            [cloudship.client.data.protocol :refer [DataDescribeClient]]))
+            [cloudship.client.data.protocol :refer [DataDescribeClient]]
+            [cloudship.client.impl.generic-soap.describe :as describe]))
 
 (defrecord SoapClient [base-url api-version session])
 
@@ -14,5 +14,5 @@
 
 (extend-protocol DataDescribeClient
   SoapClient
-  (describe-global [this] (impl/describe-global this))
-  (describe-objects [this object-names] (impl/describe-sobjects this object-names)))
+  (describe-global [this] (describe/describe-global this))
+  (describe-objects [this object-names] (describe/describe-sobjects this object-names)))

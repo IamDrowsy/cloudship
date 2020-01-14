@@ -1,25 +1,35 @@
-(ns cloudship.client.impl.generic-xml.core
+(ns cloudship.client.impl.generic-soap.core
   (:require [cloudship.client.data.protocol :refer [DataDescribeClient]]
             [com.rpl.specter :as s]
             [ebenbild.core :as e]
             [clj-http.client :as http]
             [clojure.data.xml :as xml]
-            [cloudship.client.impl.generic-xml.convert :as c]
+            [cloudship.client.impl.generic-soap.convert :as c]
             [clojure.string :as str]))
 
 (def alias-uris
   {'xsd "http://www.w3.org/2001/XMLSchema"
    'xsi "http://www.w3.org/2001/XMLSchema-instance"
    'env "http://schemas.xmlsoap.org/soap/envelope/"
-   'partner "urn:partner.soap.sforce.com"})
+   'partner "urn:partner.soap.sforce.com"
+   'tooling "urn:tooling.soap.sforce.com"})
 
 (defrecord SoapClient [base-url api-version session])
 
 (doseq [[k v] alias-uris]
   (xml/alias-uri k v))
 
-(defn in-partner-ns [key]
-  (str "{" (get alias-uris 'partner) "}" (name key)))
+(def apis
+  {:meta    {:url-part  "m"
+             :namespace 'metadata}
+   :data    {:url-part  "u"
+             :namespace 'partner}
+   :tooling {:url-part  "T"
+             :namespace 'tooling}})
+
+(defn in-api-ns [key api]
+  (str "{" (get alias-uris (:namespace (apis api))) "}" (name key)))
+
 
 (defn add-envelop [body header]
   {:tag ::env/Envelope
@@ -47,50 +57,39 @@
        second
        (:result))))
 
-(defn- add-service-part [api-version base-url]
-  (str base-url "/services/Soap/u/" api-version "/"))
+(defn- add-service-part [api-version base-url api]
+  (str base-url "/services/Soap/" (:url-part (apis api)) "/" api-version "/"))
 
 (defn- has-no-service-part? [url]
-  (not (str/includes? url "services/Soap/u")))
+  (not (str/includes? url "services/Soap/")))
 
-(defn- add-soap-service-part-if-missing [api-version url]
+(defn- add-soap-service-part-if-missing [api-version url api]
   (if (has-no-service-part? url)
-    (add-service-part api-version url)
+    (add-service-part api-version url api)
     url))
 
-(defn- ->soap-url [api-version base-url]
-  (add-soap-service-part-if-missing api-version base-url))
+(defn- ->soap-url [api-version base-url api]
+  (add-soap-service-part-if-missing api-version base-url api))
 
 (defn send-soap
   ([client action]
    (send-soap client action []))
   ([client action body]
-   (let [target (->soap-url (:api-version client) (:base-url client))]
+   (send-soap client action body :data))
+  ([client action body api]
+   (let [target (->soap-url (:api-version client) (:base-url client) api)]
      (send-soap* target (name action)
-                 {:tag     (in-partner-ns action)
+                 {:tag     (in-api-ns action api)
                   :content body}
-                 {:tag     ::partner/SessionHeader
-                  :content {:tag     ::partner/sessionId
+                 {:tag     (in-api-ns :SessionHeader api)
+                  :content {:tag     (in-api-ns :sessionId api)
                             :content (:session client)}}))))
 
 (defn login [{:keys [url username password api-version]}]
-  (first (send-soap* (->soap-url api-version url)
+  (first (send-soap* (->soap-url api-version url :data)
                      "login"
                      {:tag ::partner/login
                       :content [{:tag :username
                                  :content username}
                                 {:tag :password
                                  :content password}]})))
-
-
-(defn describe-global [client]
-  (send-soap client :describeGlobal))
-
-(defn describe-sobjects* [client sobject-names]
-  (send-soap client :describeSObjects (mapv (fn [name]
-                                              {:tag (in-partner-ns :sObjectType)
-                                               :content [name]})
-                                            sobject-names)))
-
-(defn describe-sobjects [client sobject-names]
-  (mapcat (partial describe-sobjects* client) (partition-all 100 sobject-names)))

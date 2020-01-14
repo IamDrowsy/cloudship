@@ -8,7 +8,7 @@
             [cloudship.client.impl.mem.meta-describe :as mmd]
             [cloudship.client.impl.sf-sdk.data.init :as data]
             [cloudship.client.impl.sf-sdk.meta.core :as meta]
-            [cloudship.client.impl.generic-xml.init :as generic]
+            [cloudship.client.impl.generic-soap.init :as generic]
             [clojure.core.cache :as cache :refer [has? miss hit lookup evict]]
             [taoensso.timbre :as t]
             [clojure.pprint :as pp])

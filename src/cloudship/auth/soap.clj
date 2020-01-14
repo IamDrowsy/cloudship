@@ -1,6 +1,6 @@
 (ns ^:no-doc cloudship.auth.soap
   (:require [cloudship.auth.method :as am]
-            [cloudship.client.impl.generic-xml.core :as generic]
+            [cloudship.client.impl.generic-soap.core :as generic]
             [cloudship.spec.config :as sc]
             [clojure.spec.alpha :as s]
             [clojure.string :as str]))

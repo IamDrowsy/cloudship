@@ -1,4 +1,4 @@
-(ns cloudship.client.impl.generic-xml.convert
+(ns cloudship.client.impl.generic-soap.convert
   (:require [flatland.useful.seq :as us]))
 
 (defn simple? [content]
