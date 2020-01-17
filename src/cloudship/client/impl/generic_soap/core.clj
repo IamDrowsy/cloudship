@@ -27,9 +27,11 @@
    :tooling {:url-part  "T"
              :namespace 'tooling}})
 
-(defn in-api-ns [key api]
-  (str "{" (get alias-uris (:namespace (apis api))) "}" (name key)))
+(defn api-ns [api]
+  (str "{" (get alias-uris (:namespace (apis api))) "}"))
 
+(defn in-api-ns [key api]
+  (str (api-ns api) (name key)))
 
 (defn add-envelop [body header]
   {:tag ::env/Envelope
@@ -42,20 +44,21 @@
   ; for now we strip the response header as we don't need it
   (s/select-one [:content s/ALL (e/like {:tag :Body}) :content s/FIRST] envelop))
 
+(defn- build-soap-request* [action body soap-headers]
+  {:body    (xml/emit-str (add-envelop body soap-headers))
+   :headers {"content-type" "text/xml"
+             "SOAPAction"   action}})
+
 (defn send-soap*
   ([target action body]
    (send-soap* target action body {}))
   ([target action body soap-headers]
    (-> (http/post target
-                  {:body    (xml/emit-str (add-envelop body soap-headers))
-                   :headers {"content-type" "text/xml"
-                             "SOAPAction"   action}})
+                  (build-soap-request* action body soap-headers))
        (:body)
        (xml/parse-str)
        (strip-envelop)
-       (c/xml->map)
-       second
-       (:result))))
+       (c/xml->map))))
 
 (defn- add-service-part [api-version base-url api]
   (str base-url "/services/Soap/" (:url-part (apis api)) "/" api-version "/"))
@@ -77,19 +80,19 @@
   ([client action body]
    (send-soap client action body :data))
   ([client action body api]
-   (let [target (->soap-url (:api-version client) (:base-url client) api)]
-     (send-soap* target (name action)
-                 {:tag     (in-api-ns action api)
-                  :content body}
-                 {:tag     (in-api-ns :SessionHeader api)
-                  :content {:tag     (in-api-ns :sessionId api)
-                            :content (:session client)}}))))
+   (let [target (->soap-url (:api-version client) (:base-url client) api)
+         namespace (api-ns api)]
+     ;; usually we retrieve a :Something response with a result key
+     (->> (send-soap* target (name action)
+                      (c/tag+content->xml namespace action body)
+                      (c/tag+content->xml namespace :SessionHeader {:sessionId (:session client)}))
+          first val :result))))
 
 (defn login [{:keys [url username password api-version]}]
-  (first (send-soap* (->soap-url api-version url :data)
-                     "login"
-                     {:tag ::partner/login
-                      :content [{:tag :username
-                                 :content username}
-                                {:tag :password
-                                 :content password}]})))
+  (-> (send-soap* (->soap-url api-version url :data)
+                  "login"
+                  (c/tag+content->xml ::partner/login
+                                      {:username username :password password}))
+      :loginResponse
+      :result
+      first))

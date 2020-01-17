@@ -5,10 +5,7 @@
   (:sobjects (first (impl/send-soap client :describeGlobal))))
 
 (defn describe-sobjects* [client sobject-names]
-  (impl/send-soap client :describeSObjects (mapv (fn [name]
-                                                   {:tag (impl/in-api-ns :sObjectType :data)
-                                                    :content [name]})
-                                                 sobject-names)))
+  (impl/send-soap client :describeSObjects  {:sObjectType sobject-names}))
 
 (defn describe-sobjects [client sobject-names]
   (mapcat (partial describe-sobjects* client) (partition-all 100 sobject-names)))
