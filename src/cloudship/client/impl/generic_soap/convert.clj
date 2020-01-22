@@ -20,11 +20,12 @@
         (conj result content)))
 
 (defn element->map [convert-fn {:keys [tag content] :as elem}]
-  [(keyword (name tag))
-   (if (single-string? content)
-     (first content)
-     (us/groupings first (partial extract-grouping convert-fn)
-                   [] (mapv (partial element->map convert-fn) content)))])
+  (let [new-content (cond (single-string? content) (first content)
+                          :else (us/groupings first (partial extract-grouping convert-fn)
+                                              [] (mapv (partial element->map convert-fn) content)))]
+    [(keyword (name tag))
+     new-content]))
+
 
 (defn xml->map
   ([xml]

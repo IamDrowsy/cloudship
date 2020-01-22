@@ -47,10 +47,14 @@
   (t/info (str "Connection data is: \n" (with-out-str (pp/pprint (select-keys config [:proxy :username :url :api-version])))))
   (let [authed-config (auth/auth config)
         generic-client (generic/->generic-client authed-config)
-        partner-con (data/->partner-connection authed-config)
-        meta-con (meta/->metadata-connection partner-con)]
+        data-con (if (= :generic (:client config))
+                   generic-client
+                   (data/->partner-connection authed-config))
+        meta-con (if (= :generic (:client config))
+                   generic-client
+                   (meta/->metadata-connection data-con))]
     (->CloudshipClient (md/memoize-describe-client generic-client)
-                       partner-con
+                       data-con
                        (mmd/memoize-describe-client meta-con)
                        meta-con)))
 

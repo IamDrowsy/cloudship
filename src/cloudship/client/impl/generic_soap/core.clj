@@ -80,6 +80,7 @@
   ([client action body]
    (send-soap client action body :data))
   ([client action body api]
+   #_(println "Generic soap call")
    (let [target (->soap-url (:api-version client) (:base-url client) api)
          namespace (api-ns api)]
      ;; usually we retrieve a :Something response with a result key
@@ -88,7 +89,9 @@
                       (c/tag+content->xml namespace :SessionHeader {:sessionId (:session client)}))
           first val :result))))
 
-(defn login [{:keys [url username password api-version]}]
+(defn login [{:keys [url username password api-version] :as props}]
+  ;not using destructued symbols to get better error
+  {:pre [(:username props) (:password props)]}
   (-> (send-soap* (->soap-url api-version url :data)
                   "login"
                   (c/tag+content->xml ::partner/login
