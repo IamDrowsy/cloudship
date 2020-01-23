@@ -1,8 +1,13 @@
 (ns cloudship.client.impl.generic-soap.convert
-  (:require [flatland.useful.seq :as us]))
+  (:require [flatland.useful.seq :as us]
+            [clojure.data.xml :as xml]))
 
 (defn single-string? [content]
   (and (= 1 (count content)) (string? (first content))))
+
+(defn single-nil? [content]
+  ; maybe we want to check for {:attrs #:xmlns.http%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema-instance{:nil "true"}} instead
+  (and (= 1 (count content)) (nil? (:content (first content)))))
 
 (defn default-convert-fn [tag content]
   (case content
@@ -11,21 +16,30 @@
     content))
 
 (defn extract-grouping [convert-fn result [tag content]]
-  (cond (and (empty? result) (string? content))
-        (convert-fn tag content)
-        ; if the first was a string but there is more
-        (string? result)
-        (conj [result] content)
-        :else
-        (conj result content)))
+  (cond
+    ; first was nil but now there is content
+    (nil? result)
+    [nil content]
+    (and (empty? result) (string? content))
+    (convert-fn tag content)
+    ; if everything is empty
+    (and (empty? result) (nil? content))
+    nil
+    ; if the first was a string but there is more
+    (string? result)
+    [result content]
+    :else
+    (conj result content)))
 
-(defn element->map [convert-fn {:keys [tag content] :as elem}]
+(xml/alias-uri 'xsi "http://www.w3.org/2001/XMLSchema-instance")
+
+(defn element->map [convert-fn {:keys [tag attrs content] :as elem}]
   (let [new-content (cond (single-string? content) (first content)
+                          (::xsi/nil attrs) nil
                           :else (us/groupings first (partial extract-grouping convert-fn)
                                               [] (mapv (partial element->map convert-fn) content)))]
     [(keyword (name tag))
      new-content]))
-
 
 (defn xml->map
   ([xml]
@@ -50,5 +64,6 @@
                                                                  (conj result new-content))))
                                                            []
                                                            content)}
+           (nil? content) {:tag tag-in-ns :attrs {:nil "true"}}
            (empty? content) {:tag tag-in-ns :content []}
            (sequential? content) (mapv (partial tag+content->xml namespace tag) content)))))

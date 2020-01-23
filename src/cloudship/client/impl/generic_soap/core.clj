@@ -49,16 +49,15 @@
    :headers {"content-type" "text/xml"
              "SOAPAction"   action}})
 
-(defn send-soap*
+(defn send-soap*!
   ([target action body]
-   (send-soap* target action body {}))
+   (send-soap*! target action body {}))
   ([target action body soap-headers]
    (-> (http/post target
                   (build-soap-request* action body soap-headers))
        (:body)
        (xml/parse-str)
-       (strip-envelop)
-       (c/xml->map))))
+       (strip-envelop))))
 
 (defn- add-service-part [api-version base-url api]
   (str base-url "/services/Soap/" (:url-part (apis api)) "/" api-version "/"))
@@ -74,6 +73,15 @@
 (defn- ->soap-url [api-version base-url api]
   (add-soap-service-part-if-missing api-version base-url api))
 
+(defn send-soap*
+  [client action body api]
+  (let [target (->soap-url (:api-version client) (:base-url client) api)
+        namespace (api-ns api)]
+    ;; usually we retrieve a :Something response with a result key
+    (send-soap*! target (name action)
+                (c/tag+content->xml namespace action body)
+                (c/tag+content->xml namespace :SessionHeader {:sessionId (:session client)}))))
+
 (defn send-soap
   ([client action]
    (send-soap client action []))
@@ -81,21 +89,19 @@
    (send-soap client action body :data))
   ([client action body api]
    #_(println "Generic soap call")
-   (let [target (->soap-url (:api-version client) (:base-url client) api)
-         namespace (api-ns api)]
-     ;; usually we retrieve a :Something response with a result key
-     (->> (send-soap* target (name action)
-                      (c/tag+content->xml namespace action body)
-                      (c/tag+content->xml namespace :SessionHeader {:sessionId (:session client)}))
-          first val :result))))
+   ;; usually we retrieve a :Something response with a result key
+   (->> (send-soap* client action body api)
+        (c/xml->map)
+        first val :result)))
 
 (defn login [{:keys [url username password api-version] :as props}]
   ;not using destructued symbols to get better error
   {:pre [(:username props) (:password props)]}
-  (-> (send-soap* (->soap-url api-version url :data)
-                  "login"
-                  (c/tag+content->xml ::partner/login
-                                      {:username username :password password}))
+  (-> (send-soap* {:api-version api-version :base-url url}
+                  :login
+                  {:username username :password password}
+                  :data)
+      (c/xml->map)
       :loginResponse
       :result
       first))
