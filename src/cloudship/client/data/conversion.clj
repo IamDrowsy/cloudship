@@ -84,10 +84,10 @@
 (def date-formatter (jtf/formatter :iso-date))
 
 (defn coerce-bool [s]
-  ;only special case as 0 becomes false automaticly
-  (if (= s "1")
-    true
-    (Boolean/parseBoolean s)))
+  (cond (= s "1") true
+        (= s "0") false
+        (boolean? s) s
+        :else (Boolean/parseBoolean s)))
 
 (defmethod string->cloudship-fn* "unknown" [type] identity)
 (defmethod string->cloudship-fn* "string" [type] identity)
