@@ -9,7 +9,8 @@
   (let [[p _ url services soap u api-version _] (str/split server-url #"/")]
     [(str "https://" url "/") api-version]))
 
-; for now we are using the full partner connection.
+; we always login via the generic soap client as it works for this and we
+; maybe can get rid of the big sdk client at some point
 (defn- session+url [config]
   (let [login-result (generic/login config)
         [url api-version] (parse-url (:serverUrl login-result))]
