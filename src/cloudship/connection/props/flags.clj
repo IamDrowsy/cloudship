@@ -51,6 +51,10 @@
   [this] (resolve-flag {:flag-name "auth-method" :opt (:opt this)}))
 
 (defmethod resolve-flag
+  "generic"
+  [this] (fn [props] (assoc props :client :generic)))
+
+(defmethod resolve-flag
   :default
   [this] (fn [config]
            (let [flag (keyword (:flag-name this))]

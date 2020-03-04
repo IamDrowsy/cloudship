@@ -20,6 +20,8 @@
                  [ebenbild "0.2.0"]
                  [com.rpl/specter "1.1.3"]
                  [clj-http "3.10.0"]
+                 [org.flatland/useful "0.11.6"]
+                 [org.clojure/data.xml "0.2.0-alpha6"]
                  [com.force.api/force-partner-api "47.0.0"]
                  [com.force.api/force-wsc "47.0.0"]
                  [com.force.api/force-metadata-api "47.0.0"]]
