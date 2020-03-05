@@ -1,8 +1,9 @@
 (ns cloudship.client.impl.generic-soap.init
   (:require [clojure.string :as str]
-            [cloudship.client.data.protocol :refer [DataDescribeClient DataClient]]
+            [cloudship.client.data.protocol :refer [DataDescribeClient DataClient BaseClient]]
             [cloudship.client.impl.generic-soap.describe :as describe]
-            [cloudship.client.impl.generic-soap.data :as data]))
+            [cloudship.client.impl.generic-soap.data :as data]
+            [cloudship.client.impl.generic-soap.core :as core]))
 
 (defrecord GenericSoapClient [base-url api-version session])
 
@@ -12,6 +13,14 @@
 
 (defn ->generic-client [{:keys [url api-version session]}]
   (->GenericSoapClient url api-version session))
+
+(extend-protocol BaseClient
+  GenericSoapClient
+  (info [this] {:type :generic-soap
+                :endpoint (core/->soap-url (:api-version this) (:base-url this) :data)
+                :client this
+                :session (:session this)
+                :api-version (:api-version this)}))
 
 (extend-protocol DataDescribeClient
   GenericSoapClient

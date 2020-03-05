@@ -70,7 +70,7 @@
     (add-service-part api-version url api)
     url))
 
-(defn- ->soap-url [api-version base-url api]
+(defn ->soap-url [api-version base-url api]
   (add-soap-service-part-if-missing api-version base-url api))
 
 (defn send-soap*
