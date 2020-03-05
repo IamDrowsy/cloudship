@@ -120,8 +120,8 @@ Options are:
    (q cloudship object field-or-fields {}))
   ([cloudship object field-or-fields {:keys [in all] :as options}]
    (let [client (c/resolve-cloudship-client cloudship)
-         field-list (query/determine-field-list client field-or-fields object)
          _ (query/validate-object client object)
+         field-list (query/determine-field-list client field-or-fields object)
          query-string (query/build-query-string object field-list options)]
      (cond (query-opt-error? options) []
            (in-query-too-long? in query-string) (split-up-in-query client object field-list options)
