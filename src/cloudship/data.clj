@@ -16,7 +16,8 @@
             [clojure.spec.alpha :as s]
             [clojure.core.protocols :as cp]
             [clojure.string :as str]
-            [com.rpl.specter :refer :all])
+            [com.rpl.specter :refer :all]
+            [cloudship.util.suggest :as suggest])
   (:import (java.net URL)))
 
 (declare q)
@@ -120,6 +121,7 @@ Options are:
   ([cloudship object field-or-fields {:keys [in all] :as options}]
    (let [client (c/resolve-cloudship-client cloudship)
          field-list (query/determine-field-list client field-or-fields object)
+         _ (query/validate-object client object)
          query-string (query/build-query-string object field-list options)]
      (cond (query-opt-error? options) []
            (in-query-too-long? in query-string) (split-up-in-query client object field-list options)

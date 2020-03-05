@@ -2,7 +2,9 @@
   (:require [cloudship.client.data.describe :as describe]
             [ebenbild.core :refer [like]]
             [clojure.string :as str]
-            [instaparse.core :as insta]))
+            [instaparse.core :as insta]
+            [cloudship.util.suggest :as suggest]
+            [cloudship.client.data.protocol :as p]))
 
 (def soql-grammar
   "<query> = <'SELECT'> fieldList <'FROM'> object options?
@@ -57,6 +59,11 @@
   (if (coll? field-or-fields)
     (str/join "," (map name field-or-fields))
     (name field-or-fields)))
+
+(defn validate-object [describe-client obj]
+  ; TODO maybe cache this trie
+  (let [objects-trie (suggest/build-trie (map :name (p/describe-global describe-client)))]
+    (suggest/valid?-or-throw-with-alternatives "SObject" objects-trie obj)))
 
 (defn build-query-string [obj field-or-fields options]
   (let [field-string (field-string field-or-fields)]
