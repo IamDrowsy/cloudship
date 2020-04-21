@@ -8,13 +8,15 @@
 (def ^:private sep (System/getProperty "file.separator"))
 
 (defn deep-merge
-  "Deep merge that merges maps and concats vectors"
+  "Deep merge that merges maps and concats or replaces vectors"
   [v & vs]
   (letfn [(rec-merge [v1 v2]
             (cond (and (map? v1) (map? v2))
                   (merge-with deep-merge v1 v2)
                   (and (vector? v1) (vector? v2))
-                  (into [] (concat v1 v2))
+                  (if (:replace (meta v2))
+                    v2
+                    (into [] (concat v1 v2)))
                   :else v2))]
     (when (some identity vs)
       (reduce rec-merge v vs))))
