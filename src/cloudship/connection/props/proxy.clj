@@ -5,7 +5,7 @@
   (let [port (System/getProperty "http.proxyPort")
         host (System/getProperty "http.proxyHost")]
     (if (and port host)
-      {:port port
+      {:port (Integer/valueOf port)
        :host host})))
 
 (defn proxy-from-selector [url]

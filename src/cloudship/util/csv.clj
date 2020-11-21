@@ -53,16 +53,16 @@
 (defn csv-string
   ([maps]
    (csv-string maps default-opts))
-  ([maps {:keys [describe-client object header header-sort] :as opts}]
+  ([maps {:keys [describe-client object header header-sort prepend-header] :as opts}]
    (if (empty? maps)
      []
      (let [object-name (or object (:type (first maps)))
-           header-keys (or header (keys (convert/flatten-map (first maps))))
+           flat-maps (map convert/flatten-map maps)
+           header-keys (or header (reduce (fn [ks m] (into ks (keys m))) #{} flat-maps))
            header-vec (if header-sort (sort-by header-sort header-keys) header-keys)]
-       (cond->> maps
-                true (map convert/flatten-map)
+       (cond->> flat-maps
                 describe-client (sc/cast-with (convert/cloudship->string-cast-map describe-client object-name header-vec))
-                true (sc/vectorize {:header header-vec})
+                true (sc/vectorize {:header header-vec :prepend-header (if (nil? prepend-header) true prepend-header)})
                 true (sc/cast-with str)
                 true (#(apply-with-named-args csv/write-csv % opts)))))))
 
