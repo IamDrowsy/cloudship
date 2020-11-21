@@ -23,9 +23,9 @@
                  [org.flatland/useful "0.11.6"]
                  [org.clojure/data.xml "0.2.0-alpha6"]
                  [clemence "0.3.0"]
-                 [com.force.api/force-partner-api "49.2.0"]
-                 [com.force.api/force-wsc "49.2.1"]
-                 [com.force.api/force-metadata-api "49.2.0"]]
+                 [com.force.api/force-partner-api "50.0.0"]
+                 [com.force.api/force-wsc "50.0.0"]
+                 [com.force.api/force-metadata-api "50.0.0"]]
 
   :profiles {:dev {:resource-paths ["resources-test"]
                    :dependencies [[org.clojure/test.check "1.0.0"]
