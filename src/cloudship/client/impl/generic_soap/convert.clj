@@ -17,7 +17,7 @@
 
 (defn extract-grouping [convert-fn result [tag content]]
   ; TODO when we have aggregated fields like BillingAddress we return :BillingAddress [{:city ...}] instead of {:city ...}
-  ; it's not trivial to see if we have on single entry of a list or an entry thats always only on (like the aggregated field)
+  ; it's not trivial to see if we have on single entry of a list or an entry thats always only one (like the aggregated field)
   (cond
     ; first was nil but now there is content
     (nil? result)

@@ -84,7 +84,7 @@
         :ret (s/coll-of ::data/sObject))
 
 (defn- query-opt-error? [{:keys [in]}]
-  (cond (and in (empty? (second in))) (do (t/error "In collection is empty.") true)
+  (cond (and in (empty? (second in))) (do (t/error "Collection for query IN is empty.") true)
         :else nil))
 
 (defn- in-query-too-long? [in query-string]
