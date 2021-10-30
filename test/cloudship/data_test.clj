@@ -8,8 +8,7 @@
 
 (def test-con {:cache-name :test
                :auth-method "sfdx"
-               :org "cloudship-test"
-               :api-version 45})
+               :org "cloudship-test"})
 
 (deftest basic-data-interaction
   (testing "Insert of account with owner"))

@@ -7,7 +7,7 @@
 
 (defn single-nil? [content]
   ; maybe we want to check for {:attrs #:xmlns.http%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema-instance{:nil "true"}} instead
-  (and (= 1 (count content)) (nil? (:content (first content)))))
+  (and (= 1 (count content)) (= "true" (:nil (:attrs (first content))))))
 
 (defn default-convert-fn [tag content]
   (case content
@@ -37,7 +37,7 @@
 
 (defn element->map [convert-fn {:keys [tag attrs content] :as elem}]
   (let [new-content (cond (single-string? content) (first content)
-                          (::xsi/nil attrs) nil
+                          (or (:nil attrs) (::xsi/nil attrs)) nil
                           :else (us/groupings first (partial extract-grouping convert-fn)
                                               [] (mapv (partial element->map convert-fn) content)))]
     [(keyword (name tag))

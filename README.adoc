@@ -98,7 +98,7 @@ Given a property map, cloudship will try to create an `CloudshipClient` Record b
 .. all entries in `[:orgs :org-name]` of config map
 .. all entries in `[:orgs :org-name :sandboxes "sandbox-name"]` of config-map
 .. the initial prop map
-. add or coerce api-version (currently default is `43.0`)
+. add or coerce api-version (currently default is `53.0`)
 . build base-url from `:sandbox`, `:instance` and `:my-domain`
 ** providing nothing will result in `login.salesforce.com`
 ** only sandbox will result in `test.salesforce.com`
@@ -140,10 +140,10 @@ Currently there are three auth methods (you can configure with `:auth-method` in
 Given the `cloudship.edn`
 [source,clojure]
 ----
-{:api-version "40.0"
+{:api-version "51.0"
  :orgs {:org1 {:username "my@username.de"
                :password "very-secret1!"
-               :sandboxes {"new" {:api-version "41.0"}}}
+               :sandboxes {"new" {:api-version "52.0"}}}
         :my-dev {:kppath ["mydev" "login"]
                  :kpdb "dir/to/db.kdbx"
                  :my-domain "cloudship"}}}
@@ -152,7 +152,7 @@ the keywords will result in the following property maps
 [source,clojure]
 ----
 (->props :org1) =>
-    {:api-version "40.0",
+    {:api-version "51.0",
      :full :org1,
      :org "org1",
      :password "very-secret1!",
@@ -162,7 +162,7 @@ the keywords will result in the following property maps
 (->props :org1:new) =>
 ; api-version is overwritten in config
 ; username and url are adjusted for the sandbox
-    {:api-version "41.0",
+    {:api-version "52.0",
      :base-username "my@username.de",
      :full :org1:new,
      :org "org1",
@@ -173,7 +173,7 @@ the keywords will result in the following property maps
 
 (->props :org1:other) =>
 ; nothing is overwritten, but username/url are adjusted for the sandbox
-    {:api-version "40.0",
+    {:api-version "51.0",
      :base-username "my@username.de",
      :full :org1:other,
      :org "org1",

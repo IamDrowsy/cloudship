@@ -1,8 +1,8 @@
-{:api-version "40.0"
+{:api-version "51.0"
  :auth-method "soap"
  :orgs {:org1 {:username "my@username.de"
                :password "very-secret1!"
-               :sandboxes {"new" {:api-version "41.0"}}}
+               :sandboxes {"new" {:api-version "52.0"}}}
         :my-dev {:kppath ["mydev" "login"]
                  :kpdb "dir/to/db.kdbx"
                  :my-domain "cloudship"}}}

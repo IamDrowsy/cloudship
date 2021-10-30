@@ -53,6 +53,7 @@
   ([target action body]
    (send-soap*! target action body {}))
   ([target action body soap-headers]
+   (tap> (build-soap-request* action body soap-headers))
    (-> (http/post target
                   (build-soap-request* action body soap-headers))
        (:body)
