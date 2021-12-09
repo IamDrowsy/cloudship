@@ -1,4 +1,11 @@
 = Change Log
+## [0.2.3] - 2021-12-09
+* add totp-flag to connect to mfa activated orgs
+
+## [0.2.2] - 2021-11-29
+* version up to salesforce sdk 53.0.1 and default version to 53
+* experimental generic soap client
+* doc fixes
 
 ## [0.2.1] - 2019-11-12
 * Experimental datafy support. Use `{:datafy true}` option of `q`
