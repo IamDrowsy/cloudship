@@ -55,9 +55,16 @@
 (defn- in-string [id-set]
   (str " ('" (str/join "','" id-set) "')"))
 
+(declare build-query-string)
+
+(defn- field-or-subquery->field-list-entry [field-or-subquery]
+  (if (coll? field-or-subquery)
+    (str "(" (apply build-query-string field-or-subquery) ")")
+    (name field-or-subquery)))
+
 (defn- field-string [field-or-fields]
   (if (coll? field-or-fields)
-    (str/join "," (map name field-or-fields))
+    (str/join "," (map field-or-subquery->field-list-entry field-or-fields))
     (name field-or-fields)))
 
 (defn validate-object [describe-client obj]
@@ -65,19 +72,22 @@
   (let [objects-trie (suggest/build-trie (map :name (p/describe-global describe-client)))]
     (suggest/valid?-or-throw-with-alternatives "SObject" objects-trie obj)))
 
-(defn build-query-string [obj field-or-fields options]
-  (let [field-string (field-string field-or-fields)]
-    (str "SELECT " field-string " FROM " obj
-         (if (:where options)
-           (str " WHERE " (:where options)))
-         (if (:sort options)
-           (str " ORDER BY " (:sort options)))
-         (if (:in options)
-           (str (if (:where options)
-                  " AND "
-                  " WHERE ")
-                (name (first (:in options)))
-                " IN " (in-string (second (:in options)))))
-         (if (:limit options)
-           (str " LIMIT " (:limit options))))))
+(defn build-query-string
+  ([obj field-or-fields]
+   (build-query-string obj field-or-fields {}))
+  ([obj field-or-fields options]
+   (let [field-string (field-string field-or-fields)]
+     (str "SELECT " field-string " FROM " obj
+          (if (:where options)
+            (str " WHERE " (:where options)))
+          (if (:sort options)
+            (str " ORDER BY " (:sort options)))
+          (if (:in options)
+            (str (if (:where options)
+                   " AND "
+                   " WHERE ")
+                 (name (first (:in options)))
+                 " IN " (in-string (second (:in options)))))
+          (if (:limit options)
+            (str " LIMIT " (:limit options)))))))
 

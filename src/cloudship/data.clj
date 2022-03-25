@@ -103,6 +103,7 @@
    * Given a function for `field-or-fields`, it will run it as predicate on the field metadata.
      * This especially works for keywords like `:updateable` or `:createable`.
    * Always queries `:Id`.
+   * Supports subqueries using `[\"relationFieldOnParent\", fieldlist, options]` as an entry in the field list
 
 Options are:
 

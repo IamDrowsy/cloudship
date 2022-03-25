@@ -37,3 +37,14 @@
 (deftest extract-objects
   (testing "objects get extractet"
     (is (= (map object-from-query queries) expected-objects))))
+
+(deftest build-query-string-test
+  (testing "build query string"
+    (is (= (build-query-string "Account" [:Id :Name] {:where "Name = 'Test'"})
+           "SELECT Id,Name FROM Account WHERE Name = 'Test'"))
+    (is (= (build-query-string "Account" [:Test] {:in [:Name ["1" "2" "3"]]})
+           "SELECT Test FROM Account WHERE Name IN  ('1','2','3')"))
+    (is (= (build-query-string "Account" [:Id ["Contacts" [:Name]]])
+           "SELECT Id,(SELECT Name FROM Contacts) FROM Account")
+        (= (build-query-string "Account" [:Id ["Contacts" [:Name] {:where "Test = 1"}]] {:where "Test = 2"})
+           "SELECT Id,(SELECT Name FROM Contacts WHERE Test = 1) FROM Account WHERE Test = 2"))))
