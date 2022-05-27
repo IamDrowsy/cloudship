@@ -6,7 +6,8 @@
             [java-time.zone :as jtz]
             [java-time.local :as jtl]
             [java-time.temporal :as jtt]
-            [clojure.set :as set])
+            [clojure.set :as set]
+            [clojure.string :as str])
   (:import [de.slackspace.openkeepass KeePassDatabase]
            [de.slackspace.openkeepass.domain Group KeePassFile Entry]))
 
@@ -66,9 +67,10 @@
 
 (defn- extract-properties [entry-map]
   (set/rename-keys
-    (into {}
-          (map (fn [m] [(keyword (:key m)) (:value m)])
-               (:properties entry-map)))
+    (->> (:properties entry-map)
+         (remove #(str/blank? (:value %)))
+         (map (fn [m] [(keyword (:key m)) (:value m)]))
+         (into {}))
     ;for compability with other props we rename the default entries
     {:Password :password
      :UserName :username

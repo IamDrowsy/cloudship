@@ -78,10 +78,10 @@
                     (map? kw-or-map)     #_=> (l/find-and-merge-props kw-or-map))]
     (u/assert-input ::config-spec/preauth-config
                     (-> props
-                        +api-version
-                        +url
-                        +flags
-                        +protocol
-                        +proxy
+                        #_+api-version
+                        #_+url
+                        #_+flags
+                        #_+protocol
+                        #_+proxy
                         +sandbox-username-extension))))
 

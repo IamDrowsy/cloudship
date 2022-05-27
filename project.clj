@@ -1,4 +1,4 @@
-(defproject cloudship "0.2.5"
+(defproject cloudship "0.2.6-SNAPSHOT"
   :description "cloudship is a clojure toolkit to explore and manipulate your salesforce instances"
   :url "https://github.com/IamDrowsy/cloudship"
   :license {:name "Eclipse Public License"
@@ -24,6 +24,8 @@
                  [org.clojure/data.xml "0.2.0-alpha6"]
                  [one-time "0.7.0"]
                  [clemence "0.3.0"]
+                 [com.wsscode/pathom3 "2022.05.19-alpha"]
+                 [com.github.peter-gergely-horvath/windpapi4j "1.0"]
                  [com.force.api/force-partner-api "55.1.0"]
                  [com.force.api/force-wsc "55.1.0"]
                  [com.force.api/force-metadata-api "55.1.0"]]
@@ -32,4 +34,5 @@
   :profiles {:dev {:resource-paths ["resources-test"]
                    :dependencies [[org.clojure/test.check "1.1.1"]
                                   [orchestra "2021.01.01-1"]
-                                  [criterium "0.4.6"]]}})
+                                  [criterium "0.4.6"]
+                                  [com.wsscode/pathom-viz-connector "2022.02.14"]]}})

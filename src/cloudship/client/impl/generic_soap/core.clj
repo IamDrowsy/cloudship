@@ -95,10 +95,10 @@
         (c/xml->map)
         first val :result)))
 
-(defn login [{:keys [url username password api-version] :as props}]
+(defn login [{:keys [login-url username password api-version] :as props}]
   ;not using destructued symbols to get better error
   {:pre [(:username props) (:password props)]}
-  (-> (send-soap* {:api-version api-version :base-url url}
+  (-> (send-soap* {:api-version api-version :base-url login-url}
                   :login
                   {:username username :password password}
                   :data)

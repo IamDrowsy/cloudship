@@ -5,6 +5,7 @@
 (s/def ::sandbox string?)
 (s/def ::full keyword?)
 (s/def ::url string?)
+(s/def ::login-url string?)
 (s/def ::username string?)
 (s/def ::security-token string?)
 (s/def ::password string?)
