@@ -73,7 +73,7 @@
          (into {}))
     ;for compability with other props we rename the default entries
     {:Password :password
-     :UserName :username
+     :UserName :base-username
      :Notes :notes
      :URL :url
      :Title :title}))

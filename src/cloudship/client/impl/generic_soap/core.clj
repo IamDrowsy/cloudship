@@ -46,6 +46,7 @@
 
 (defn- build-soap-request* [action body soap-headers]
   {:body    (xml/emit-str (add-envelop body soap-headers))
+   :throw-exceptions false
    :headers {"content-type" "text/xml"
              "SOAPAction"   action}})
 
@@ -53,7 +54,6 @@
   ([target action body]
    (send-soap*! target action body {}))
   ([target action body soap-headers]
-   (tap> (build-soap-request* action body soap-headers))
    (-> (http/post target
                   (build-soap-request* action body soap-headers))
        (:body)
@@ -83,6 +83,12 @@
                 (c/tag+content->xml namespace action body)
                 (c/tag+content->xml namespace :SessionHeader {:sessionId (:session client)}))))
 
+(defn throw-on-soap-error [{:keys [Fault] :as response-map}]
+  (if Fault
+    (throw (ex-info (:faultstring Fault) Fault))
+    response-map))
+
+
 (defn send-soap
   ([client action]
    (send-soap client action []))
@@ -93,6 +99,7 @@
    ;; usually we retrieve a :Something response with a result key
    (->> (send-soap* client action body api)
         (c/xml->map)
+        (throw-on-soap-error)
         first val :result)))
 
 (defn login [{:keys [login-url username password api-version] :as props}]
@@ -103,6 +110,7 @@
                   {:username username :password password}
                   :data)
       (c/xml->map)
+      (throw-on-soap-error)
       :loginResponse
       :result
       first))

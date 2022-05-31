@@ -37,7 +37,7 @@
 
 (defn- ^ConnectorConfig prepare-config [{:keys [username security-token password url api-version proxy session]}]
   (doto (ConnectorConfig.)
-    (set-userinfo-or-session (str username security-token) password session)
+    (set-userinfo-or-session username (str password security-token) session)
     (.setServiceEndpoint (->soap-url api-version url))
     (.setAuthEndpoint (->soap-url api-version url))
     (set-proxy proxy)))

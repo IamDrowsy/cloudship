@@ -1,21 +1,15 @@
 (ns cloudship.connection.props.pathom
   (:require [com.wsscode.pathom3.connect.operation :as pco]
             [com.wsscode.pathom3.interface.eql :as p.eql]
+            [com.wsscode.pathom3.plugin :as p.plugin]
             [com.wsscode.pathom3.connect.indexes :as pci]
-            #_[com.wsscode.pathom.viz.ws-connector.core :as pvc]
-            #_[com.wsscode.pathom.viz.ws-connector.pathom3 :as p.connector]
             [cloudship.auth.method :as am]
             [cloudship.connection.props.proxy :as proxy]
-            [cloudship.connection.props.core :as props]
             [cloudship.connection.props.flags.windp :as windp]
-            [cloudship.util.keepass :as kp]))
-
-(defn catched-sfdx-auth [config]
-  (try (am/auth (assoc config :auth-method :sfdx))
-       (catch Exception e
-         (if (= "NamedOrgNotFound" (:name (:out (ex-data e))))
-           {}
-           (throw e)))))
+            [cloudship.util.keepass :as kp]
+            [clojure.string :as str]
+            [taoensso.timbre :as t]
+            [clojure.pprint :as pp]))
 
 (pco/defresolver connection-by-props [config]
   {::pco/input    [:login-url :api-version :username :password (pco/? :proxy)]
@@ -23,8 +17,9 @@
    ::pco/priority 10}
   (am/auth (assoc config :auth-method :soap)))
 
-(pco/defresolver connection-by-sfdx-alias [{:keys [org] :as config}]
-  {::pco/output [:session :url]
+(pco/defresolver connection-by-sfdx-alias [config]
+  {::pco/input [:org (pco/? :sandbox)]
+   ::pco/output [:session :url :username]
    ::pco/priority 6}
   (am/auth (assoc config :auth-method :sfdx)))
 
@@ -45,7 +40,7 @@
   {:proxy (proxy/find-default-proxy login-url)})
 
 (pco/defresolver keypass-resolver [{:keys [kpdb kppath kppass]}]
-  {::pco/output [:username :password]}
+  {::pco/output [:base-username :password]}
   (kp/entry kpdb kppath kppass))
 
 (pco/defresolver winddp-resolver [config]
@@ -62,17 +57,39 @@
   {:login-url (if (:sandbox config)
                 "https://test.salesforce.com" "https://login.salesforce.com")})
 
-#_(pco/defresolver my-domain-url-resolver [{:keys [my-domain sandbox instance]}]
-    {::pco/input  [:my-domain (:pco/? :sandbox) (:pco/? :instance)]
-     ::pco/output [:login-url]
-     ::pco/priority 20}
-    {:url "Blub"})
+(pco/defresolver username-resolver [{:keys [base-username sandbox]}]
+  {::pco/input [:base-username (pco/? :sandbox)]
+   ::pco/output [:username]}
+  {:username (if (and sandbox
+                      (not (clojure.string/ends-with? base-username sandbox)))
+               (str base-username "." sandbox)
+               base-username)})
 
-(def resolver [connection-by-props connection-by-sfdx-alias connection-by-sfdx-username connection-by-web-auth
-               api-version-resolver proxy-resolver keypass-resolver winddp-resolver default-url-resolver])
+(pco/defresolver my-domain-url-resolver [{:keys [my-domain sandbox instance]}]
+  {::pco/input  [:my-domain (pco/? :sandbox) (pco/? :instance)]
+   ::pco/output [:login-url]
+   ::pco/priority 20}
+  {:login-url  (cond-> (str "https://" my-domain)
+                       sandbox (str "--" sandbox)
+                       instance (str ".cs" instance)
+                       true (str ".my.salesforce.com"))})
 
-(def env (pci/register resolver))
+(def resolver [connection-by-props connection-by-sfdx-alias connection-by-sfdx-username #_connection-by-web-auth
+               api-version-resolver proxy-resolver keypass-resolver winddp-resolver default-url-resolver my-domain-url-resolver username-resolver])
+
+(def env (-> (pci/register resolver)
+             (p.plugin/register
+               {::p.plugin/id 'err
+                :com.wsscode.pathom3.connect.runner/wrap-resolver-error
+                (fn [_]
+                  (fn [env node error]
+                    (println "Error: " (ex-message error))))})))
 
 (defn auth-with-pathom
-  [keyword]
-  (p.eql/process env (props/->props keyword) [:session :url :api-version]))
+  [props]
+  (let [result (p.eql/process env props [:username :session :url :api-version :proxy])]
+    (t/info "Pathom resolved to " (with-out-str (pp/pprint (select-keys result [:username :url :api-version :proxy]))))
+    result))
+
+(defmethod am/auth :pathom
+  [config] (merge config (auth-with-pathom config)))

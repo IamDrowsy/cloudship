@@ -44,7 +44,7 @@
   (if (:cache-name config)
     (t/infof "Initializing new connection for %s" (:cache-name config))
     (t/info "Initializing new connection without :cache-name"))
-  (t/info (str "Connection data is: \n" (with-out-str (pp/pprint (select-keys config [:proxy :username :url :api-version])))))
+  (t/info (str "Connection data is: \n" (with-out-str (pp/pprint (select-keys config [:auth-method :proxy :username :url :api-version])))))
   (let [authed-config (auth/auth config)
         generic-client (generic/->generic-client authed-config)
         data-con (if (= :generic (:client config))

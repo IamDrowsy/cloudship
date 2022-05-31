@@ -12,12 +12,14 @@
                                  org-or-username?))
 
 (defn- session+url [{:keys [result]}]
-  (let [{:keys [accessToken instanceUrl]} result]
+  (let [{:keys [accessToken instanceUrl username]} result]
     {:session accessToken
-     :url instanceUrl}))
+     :url instanceUrl
+     :username username}))
 
-(defn- sfdx-auth [{:keys [org username]}]
-  (let [opts {:u (if username username (name org))}]
+(defn- sfdx-auth [{:keys [org username sandbox]}]
+  (let [opts {:u (cond-> (if username username (name org))
+                         sandbox (str "_" sandbox))}]
     (t/info "Calling sfdx force:org:display -u" (:u opts))
     (->> (sfdx/run-sfdx-command :force:org:display opts)
          (session+url))))

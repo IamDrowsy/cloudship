@@ -80,8 +80,8 @@
                     (-> props
                         #_+api-version
                         #_+url
-                        #_+flags
+                        +flags
                         #_+protocol
                         #_+proxy
-                        +sandbox-username-extension))))
+                        #_+sandbox-username-extension))))
 

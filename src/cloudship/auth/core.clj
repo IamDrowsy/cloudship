@@ -3,6 +3,7 @@
             [cloudship.auth.soap]
             [cloudship.auth.sfdx]
             [cloudship.auth.web-auth]
+            [cloudship.connection.props.pathom]
             [cloudship.spec.config :as sc]
             [clojure.spec.alpha :as s]))
 

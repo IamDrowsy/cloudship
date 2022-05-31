@@ -71,10 +71,10 @@
    (let [result
          (apply (partial sh/sh *sfdx-executable* (kw->command command) "--json")
                 (map->sh-args opts))
-         parsed-result (-> result
-                           (update :out safe-json-read))]
-     (if (zero? (:exit result))
-       (:out parsed-result)
-       (throw (ex-info (str "SFDX Error: " (get-in parsed-result [:err :message])) parsed-result))))))
+         with-parsed-out (-> result
+                             (update :out safe-json-read))]
+     (if (zero? (:exit with-parsed-out))
+       (:out with-parsed-out)
+       (throw (ex-info (str "SFDX Error: " (get-in with-parsed-out [:out :message])) with-parsed-out))))))
 
 
