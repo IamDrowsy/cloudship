@@ -17,19 +17,21 @@
                {}
                m)))
 
-(defn query-more* [client records-of-querycall queryLocator]
+(defn query-more* [client records-of-querycall queryLocator tooling]
   (loop [ql queryLocator
          result records-of-querycall]
-    (let [{:keys [queryLocator records]} (first (impl/send-soap client :queryMore {:queryLocator ql}))]
+    (let [{:keys [queryLocator records]} (first (impl/send-soap client :queryMore {:queryLocator ql} (if tooling :tooling :data)))]
       (if (empty-tag? queryLocator)
         (into result records)
         (recur queryLocator (into result records))))))
 
-(defn query* [client query {:keys [all]}]
-    (let [{:keys [queryLocator records]} (first (impl/send-soap client (if all :queryAll :query) {:queryString query}))]
+(defn query* [client query {:keys [all tooling]}]
+    (let [{:keys [queryLocator records]} (first (impl/send-soap client (if all :queryAll :query) {:queryString query} (if tooling :tooling :data)))]
       (if (empty-tag? queryLocator)
         records
-        (query-more* client records queryLocator))))
+        (query-more* client records queryLocator tooling))))
 
 (defn query [client describe-client query options]
   (mapv (partial string-map->cloudship-map describe-client) (query* client query options)))
+
+(defn delete [client describe-client options])

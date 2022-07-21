@@ -5,7 +5,9 @@
             [cloudship.client.data.protocol :as dp]
             [cloudship.client.core :as c]
             [cloudship.util.misc :as misc]
-            [cloudship.util.result :as result]))
+            [cloudship.util.result :as result]
+            [cloudship.client.impl.sf-sdk.meta.core :as meta]
+            [ebenbild.core :as e]))
 
 (defn describe
   "Returns the global meta describe data for the given cloudship."
@@ -71,3 +73,11 @@
 (defn info
   [client-description]
   (dp/info client-description))
+
+(defn search-by-name
+  "Searches all metadata types that match the ebenbild example data"
+  [cloudship search-data]
+  (->> (describe cloudship)
+       (:metadataObjects)
+       (map :xmlName)
+       (filter (e/like search-data))))
