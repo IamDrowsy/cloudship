@@ -1,10 +1,10 @@
-(defproject cloudship "0.2.4"
+(defproject cloudship "0.2.5"
   :description "cloudship is a clojure toolkit to explore and manipulate your salesforce instances"
   :url "https://github.com/IamDrowsy/cloudship"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.11.0"]
-                 [instaparse "1.4.10"]
+  :dependencies [[org.clojure/clojure "1.11.1"]
+                 [instaparse "1.4.12"]
                  [semantic-csv "0.2.1-alpha1" :exclusions [[org.clojure/clojurescript]]]
                  [com.taoensso/timbre "5.2.1"]
                  [expound "0.9.0"]
@@ -14,9 +14,9 @@
                  [clojure.java-time "0.3.3"]
                  [org.clojure/core.cache "1.0.225"]
                  [com.taoensso/nippy "3.1.1"]
-                 [http-kit "2.5.3"]
+                 [http-kit "2.6.0"]
                  [ring "1.9.5"]
-                 [cheshire "5.10.2"]
+                 [cheshire "5.11.0"]
                  [ebenbild "0.2.0"]
                  [com.rpl/specter "1.1.4"]
                  [clj-http "3.12.3"]
@@ -24,9 +24,10 @@
                  [org.clojure/data.xml "0.2.0-alpha6"]
                  [one-time "0.7.0"]
                  [clemence "0.3.0"]
-                 [com.force.api/force-partner-api "54.0.0"]
-                 [com.force.api/force-wsc "54.0.0"]
-                 [com.force.api/force-metadata-api "54.0.0"]]
+                 [com.force.api/force-partner-api "55.1.0"]
+                 [com.force.api/force-wsc "55.1.0"]
+                 [com.force.api/force-metadata-api "55.1.0"]]
+  :repositories {"jitpack" "https://jitpack.io"} ;needed for transitive dependency com.github.kenglxn.qrgen of one-time. cljdoc needs this
 
   :profiles {:dev {:resource-paths ["resources-test"]
                    :dependencies [[org.clojure/test.check "1.1.1"]

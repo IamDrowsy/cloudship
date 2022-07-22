@@ -1,5 +1,9 @@
 = Change Log
 
+## [0.2.5] - 2022-07-22
+* version up to salesforce sdk 55.1.0
+* add repository for transitiv `one-time` dependency to (com.github.kenglxn.qrgen), to try to fix cljdoc build
+
 ## [0.2.4] - 2022-03-25
 * version up to deps
 * add support for subqueries in `q`, for now only with explicit field list
